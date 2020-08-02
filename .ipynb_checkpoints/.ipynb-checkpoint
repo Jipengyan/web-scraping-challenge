@@ -1,0 +1,532 @@
+{
+ "cells": [
+  {
+   "cell_type": "code",
+   "execution_count": 3,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "#import BeautifulSoup, Pandas, Requests/Splinter"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 12,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "import requests as req\n",
+    "import time\n",
+    "import os\n",
+    "import pandas as pd\n",
+    "# import pymongo\n",
+    "from bs4 import BeautifulSoup as bs\n",
+    "from splinter import Browser\n",
+    "from selenium import webdriver\n",
+    "from flask import Flask, render_template, redirect\n",
+    "# from flask_pymongo import PyMongo"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 18,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "# Point out chromedriver directory\n",
+    "executable_path = {'executable_path': 'chromedriver.exe'}\n",
+    "browser = Browser('chrome', **executable_path, headless = False)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 4,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "# Get latest news from NASA website\n",
+    "news_url = 'https://mars.nasa.gov/news/'\n",
+    "browser.visit(news_url)\n",
+    "html = browser.html"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 5,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "# Parse HTML with Beautiful Soup\n",
+    "soup = bs(html, 'html.parser')"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 6,
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Mars Now\n",
+      "View a 3D visualization of all the missions exploring the Red Planet\n"
+     ]
+    }
+   ],
+   "source": [
+    "# Obtain the latest news title and paragraph text\n",
+    "article = soup.find('div', class_='list_text')\n",
+    "news_title = soup.find(\"div\", class_=\"content_title\").text\n",
+    "news_p = soup.find(\"div\", class_=\"description\").text\n",
+    "print(news_title)\n",
+    "print(news_p)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 7,
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "http://www.jpl.nasa.gov/spaceimages/images/wallpaper/PIA24032-640x350.jpg\n"
+     ]
+    }
+   ],
+   "source": [
+    "#JPL Mars Space Images - Featured Image\n",
+    "#visit url and extract JPL Featured space image\n",
+    "images_url = \"https://www.jpl.nasa.gov/spaceimages/?search=&category=Mars\"\n",
+    "browser.visit(images_url)\n",
+    "html = browser.html\n",
+    "images_soup = bs(html, 'html.parser')\n",
+    "#Retrieve full size image link\n",
+    "full_size_image_path = images_soup.find_all('img')[3][\"src\"]\n",
+    "full_size_image_url = f'http://www.jpl.nasa.gov{full_size_image_path}'\n",
+    "print(full_size_image_url)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 20,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "<section aria-labelledby=\"accessible-list-0\" class=\"css-1dbjc4n\" role=\"region\"><h1 aria-level=\"1\" class=\"css-4rbku5 css-901oao r-4iw3lz r-1xk2f4g r-109y4c4 r-1udh08x r-wwvuq4 r-u8s1d r-92ng3h\" dir=\"auto\" id=\"accessible-list-0\" role=\"heading\">Mars Weather’s Tweets</h1><div aria-label=\"Timeline: Mars Weather’s Tweets\" class=\"css-1dbjc4n\"><div style=\"padding-bottom: 0px;\"><div style=\"padding-top: 0px; padding-bottom: 1500px;\"><div><div class=\"css-1dbjc4n r-my5ep6 r-qklmqi r-1adg3ll\"><div class=\"css-1dbjc4n\"><article class=\"css-1dbjc4n r-1loqt21 r-18u37iz r-1ny4l3l r-o7ynqc r-6416eg\" data-focusable=\"true\" role=\"article\" tabindex=\"0\"><div class=\"css-1dbjc4n r-eqz5dr r-16y2uox r-1wbh5a2\"><div class=\"css-1dbjc4n r-16y2uox r-1wbh5a2 r-1ny4l3l r-1udh08x r-1yt7n81 r-ry3cjt\"><div class=\"css-1dbjc4n\"><div class=\"css-1dbjc4n\"><div class=\"css-1dbjc4n r-18u37iz\"><div class=\"css-1dbjc4n r-1iusvr4 r-16y2uox r-m611by\"></div></div></div><div class=\"css-1dbjc4n r-18u37iz\" data-testid=\"tweet\"><div class=\"css-1dbjc4n r-1awozwy r-18kxxzh r-zso239\" style=\"flex-basis: 49px;\"><div class=\"css-1dbjc4n r-18kxxzh r-1wbh5a2 r-13qz1uu\"><div class=\"css-1dbjc4n r-1wbh5a2 r-dnmrzs\"><a class=\"css-4rbku5 css-18t94o4 css-1dbjc4n r-sdzlij r-1loqt21 r-1adg3ll r-ahm1il r-1ny4l3l r-1udh08x r-o7ynqc r-6416eg r-13qz1uu\" data-focusable=\"true\" href=\"/MarsWxReport\" role=\"link\"><div class=\"css-1dbjc4n r-1adg3ll r-1udh08x\" style=\"\"><div class=\"r-1adg3ll r-13qz1uu\" style=\"padding-bottom: 100%;\"></div><div class=\"r-1p0dtai r-1pi2tsx r-1d2f490 r-u8s1d r-ipm5af r-13qz1uu\"><div aria-label=\"\" class=\"css-1dbjc4n r-sdzlij r-1p0dtai r-1mlwlqe r-1d2f490 r-1udh08x r-u8s1d r-zchlnj r-ipm5af r-417010\"><div class=\"css-1dbjc4n r-1niwhzg r-vvn4in r-u6sd8q r-4gszlv r-1p0dtai r-1pi2tsx r-1d2f490 r-u8s1d r-zchlnj r-ipm5af r-13qz1uu r-1wyyakw\" style='background-image: url(\"https://pbs.twimg.com/profile_images/2552209293/220px-Mars_atmosphere_x96.jpg\");'></div><img alt=\"\" class=\"css-9pa8cd\" draggable=\"true\" src=\"https://pbs.twimg.com/profile_images/2552209293/220px-Mars_atmosphere_x96.jpg\"/></div></div></div><div class=\"css-1dbjc4n r-1twgtwe r-sdzlij r-rs99b7 r-1p0dtai r-1mi75qu r-1d2f490 r-1ny4l3l r-u8s1d r-zchlnj r-ipm5af r-o7ynqc r-6416eg\"></div></a></div></div></div><div class=\"css-1dbjc4n r-1iusvr4 r-16y2uox r-1777fci r-1mi0q7o\"><div class=\"css-1dbjc4n\"><div class=\"css-1dbjc4n r-zl2h9q\"><div class=\"css-1dbjc4n r-1awozwy r-18u37iz r-1wtj0ep\"><div class=\"css-1dbjc4n r-1d09ksm r-18u37iz r-1wbh5a2\"><div class=\"css-1dbjc4n r-1wbh5a2 r-dnmrzs\"><a class=\"css-4rbku5 css-18t94o4 css-1dbjc4n r-1loqt21 r-1wbh5a2 r-dnmrzs r-1ny4l3l\" data-focusable=\"true\" href=\"/MarsWxReport\" role=\"link\"><div class=\"css-1dbjc4n r-1awozwy r-18u37iz r-1wbh5a2 r-dnmrzs r-1ny4l3l\"><div class=\"css-1dbjc4n r-1awozwy r-18u37iz r-dnmrzs\"><div class=\"css-901oao css-bfa6kz r-hkyrab r-1qd0xha r-a023e6 r-vw2c0b r-ad9z0x r-bcqeeo r-3s2u2q r-qvutc0\" dir=\"auto\"><span class=\"css-901oao css-16my406 r-1qd0xha r-ad9z0x r-bcqeeo r-qvutc0\"><span class=\"css-901oao css-16my406 r-1qd0xha r-ad9z0x r-bcqeeo r-qvutc0\">Mars Weather</span></span></div><div class=\"css-901oao r-hkyrab r-18u37iz r-1q142lx r-1qd0xha r-a023e6 r-16dba41 r-ad9z0x r-bcqeeo r-qvutc0\" dir=\"auto\"></div></div><div class=\"css-1dbjc4n r-18u37iz r-1wbh5a2 r-1f6r7vd\"><div class=\"css-901oao css-bfa6kz r-1re7ezh r-18u37iz r-1qd0xha r-a023e6 r-16dba41 r-ad9z0x r-bcqeeo r-qvutc0\" dir=\"ltr\"><span class=\"css-901oao css-16my406 r-1qd0xha r-ad9z0x r-bcqeeo r-qvutc0\">@MarsWxReport</span></div></div></div></a></div><div aria-hidden=\"true\" class=\"css-901oao r-1re7ezh r-1q142lx r-1qd0xha r-a023e6 r-16dba41 r-ad9z0x r-bcqeeo r-ou255f r-qvutc0\" dir=\"auto\"><span class=\"css-901oao css-16my406 r-1qd0xha r-ad9z0x r-bcqeeo r-qvutc0\">·</span></div><a aria-label=\"22 hours ago\" class=\"r-1re7ezh r-1loqt21 r-1q142lx r-1qd0xha r-a023e6 r-16dba41 r-ad9z0x r-bcqeeo r-3s2u2q r-qvutc0 css-4rbku5 css-18t94o4 css-901oao\" data-focusable=\"true\" dir=\"auto\" href=\"/MarsWxReport/status/1289242234232045568\" role=\"link\" title=\"9:51 AM · Jul 31, 2020\"><time datetime=\"2020-07-31T16:51:16.000Z\">22h</time></a></div><div class=\"css-1dbjc4n r-18u37iz r-1h0z5md r-1joea0r\"><div aria-haspopup=\"true\" aria-label=\"More\" class=\"css-18t94o4 css-1dbjc4n r-1777fci r-11cpok1 r-1ny4l3l r-bztko3 r-lrvibr\" data-focusable=\"true\" data-testid=\"caret\" role=\"button\" tabindex=\"0\"><div class=\"css-901oao r-1awozwy r-1re7ezh r-6koalj r-1qd0xha r-a023e6 r-16dba41 r-1h0z5md r-ad9z0x r-bcqeeo r-o7ynqc r-clp7b1 r-3s2u2q r-qvutc0\" dir=\"ltr\"><div class=\"css-1dbjc4n r-xoduu5\"><div class=\"css-1dbjc4n r-1niwhzg r-sdzlij r-1p0dtai r-xoduu5 r-1d2f490 r-podbf7 r-u8s1d r-zchlnj r-ipm5af r-o7ynqc r-6416eg\"></div><svg class=\"r-4qtqp9 r-yyyyoo r-ip8ujx r-dnmrzs r-bnwqim r-1plcrui r-lrvibr r-27tl0q\" viewbox=\"0 0 24 24\"><g><path d=\"M20.207 8.147c-.39-.39-1.023-.39-1.414 0L12 14.94 5.207 8.147c-.39-.39-1.023-.39-1.414 0-.39.39-.39 1.023 0 1.414l7.5 7.5c.195.196.45.294.707.294s.512-.098.707-.293l7.5-7.5c.39-.39.39-1.022 0-1.413z\"></path></g></svg></div></div></div></div></div></div></div><div class=\"css-1dbjc4n\"><div class=\"css-1dbjc4n\"><div class=\"css-901oao r-hkyrab r-1qd0xha r-a023e6 r-16dba41 r-ad9z0x r-bcqeeo r-bnwqim r-qvutc0\" dir=\"auto\" lang=\"en\"><span class=\"css-901oao css-16my406 r-1qd0xha r-ad9z0x r-bcqeeo r-qvutc0\">InSight sol 595 (2020-07-29) low -91.9ºC (-133.5ºF) high -12.9ºC (8.7ºF)\n",
+       "winds from the WNW at 7.0 m/s (15.6 mph) gusting to 18.2 m/s (40.7 mph)\n",
+       "pressure at 7.90 hPa</span></div></div><div class=\"css-1dbjc4n\"><div class=\"css-1dbjc4n\"><div class=\"css-1dbjc4n r-1udh08x\"><div class=\"css-1dbjc4n r-9x6qib r-1ylenci r-1phboty r-rs99b7 r-156q2ks r-1udh08x\"><div class=\"css-1dbjc4n\"><a class=\"css-4rbku5 css-18t94o4 css-1dbjc4n r-1loqt21 r-1ny4l3l\" data-focusable=\"true\" href=\"/MarsWxReport/status/1289242234232045568/photo/1\" role=\"link\"><div class=\"css-1dbjc4n r-1adg3ll r-1udh08x\" style=\"\"><div class=\"r-1adg3ll r-13qz1uu\" style=\"padding-bottom: 56.25%;\"></div><div class=\"r-1p0dtai r-1pi2tsx r-1d2f490 r-u8s1d r-ipm5af r-13qz1uu\"><div aria-label=\"Image\" class=\"css-1dbjc4n r-1p0dtai r-1mlwlqe r-1d2f490 r-11wrixw r-1udh08x r-u8s1d r-zchlnj r-ipm5af r-417010\" data-testid=\"tweetPhoto\" style=\"margin-bottom: 0px; margin-right: 0px; margin-top: 0px;\"><div class=\"css-1dbjc4n r-1niwhzg r-vvn4in r-u6sd8q r-4gszlv r-1p0dtai r-1pi2tsx r-1d2f490 r-u8s1d r-zchlnj r-ipm5af r-13qz1uu r-1wyyakw\" style='background-image: url(\"https://pbs.twimg.com/media/EeRO-fgUMAAASj7?format=png&amp;name=900x900\");'></div><img alt=\"Image\" class=\"css-9pa8cd\" draggable=\"true\" src=\"https://pbs.twimg.com/media/EeRO-fgUMAAASj7?format=png&amp;name=900x900\"/></div></div></div></a></div></div></div></div></div><div aria-label=\"1 reply, 7 Retweets, 22 likes\" class=\"css-1dbjc4n r-18u37iz r-1wtj0ep r-156q2ks r-1mdbhws\" role=\"group\"><div class=\"css-1dbjc4n r-1iusvr4 r-18u37iz r-16y2uox r-1h0z5md\"><div aria-label=\"1 Reply. Reply\" class=\"css-18t94o4 css-1dbjc4n r-1777fci r-11cpok1 r-1ny4l3l r-bztko3 r-lrvibr\" data-focusable=\"true\" data-testid=\"reply\" role=\"button\" tabindex=\"0\"><div class=\"css-901oao r-1awozwy r-1re7ezh r-6koalj r-1qd0xha r-a023e6 r-16dba41 r-1h0z5md r-ad9z0x r-bcqeeo r-o7ynqc r-clp7b1 r-3s2u2q r-qvutc0\" dir=\"ltr\"><div class=\"css-1dbjc4n r-xoduu5\"><div class=\"css-1dbjc4n r-1niwhzg r-sdzlij r-1p0dtai r-xoduu5 r-1d2f490 r-xf4iuw r-u8s1d r-zchlnj r-ipm5af r-o7ynqc r-6416eg\"></div><svg class=\"r-4qtqp9 r-yyyyoo r-1xvli5t r-dnmrzs r-bnwqim r-1plcrui r-lrvibr r-1hdv0qi\" viewbox=\"0 0 24 24\"><g><path d=\"M14.046 2.242l-4.148-.01h-.002c-4.374 0-7.8 3.427-7.8 7.802 0 4.098 3.186 7.206 7.465 7.37v3.828c0 .108.044.286.12.403.142.225.384.347.632.347.138 0 .277-.038.402-.118.264-.168 6.473-4.14 8.088-5.506 1.902-1.61 3.04-3.97 3.043-6.312v-.017c-.006-4.367-3.43-7.787-7.8-7.788zm3.787 12.972c-1.134.96-4.862 3.405-6.772 4.643V16.67c0-.414-.335-.75-.75-.75h-.396c-3.66 0-6.318-2.476-6.318-5.886 0-3.534 2.768-6.302 6.3-6.302l4.147.01h.002c3.532 0 6.3 2.766 6.302 6.296-.003 1.91-.942 3.844-2.514 5.176z\"></path></g></svg></div><div class=\"css-1dbjc4n r-xoduu5 r-1udh08x\"><span class=\"css-901oao css-16my406 r-1qd0xha r-n6v787 r-1sf4r6n r-1n0xq6e r-bcqeeo r-d3hbe1 r-1wgg2b2 r-axxi2z r-qvutc0\"><span class=\"css-901oao css-16my406 r-1qd0xha r-ad9z0x r-bcqeeo r-qvutc0\">1</span></span></div></div></div></div><div class=\"css-1dbjc4n r-1iusvr4 r-18u37iz r-16y2uox r-1h0z5md\"><div aria-label=\"7 Retweets. Retweet\" class=\"css-18t94o4 css-1dbjc4n r-1777fci r-11cpok1 r-1ny4l3l r-bztko3 r-lrvibr\" data-focusable=\"true\" data-testid=\"retweet\" role=\"button\" tabindex=\"0\"><div class=\"css-901oao r-1awozwy r-1re7ezh r-6koalj r-1qd0xha r-a023e6 r-16dba41 r-1h0z5md r-ad9z0x r-bcqeeo r-o7ynqc r-clp7b1 r-3s2u2q r-qvutc0\" dir=\"ltr\"><div class=\"css-1dbjc4n r-xoduu5\"><div class=\"css-1dbjc4n r-1niwhzg r-sdzlij r-1p0dtai r-xoduu5 r-1d2f490 r-xf4iuw r-u8s1d r-zchlnj r-ipm5af r-o7ynqc r-6416eg\"></div><svg class=\"r-4qtqp9 r-yyyyoo r-1xvli5t r-dnmrzs r-bnwqim r-1plcrui r-lrvibr r-1hdv0qi\" viewbox=\"0 0 24 24\"><g><path d=\"M23.77 15.67c-.292-.293-.767-.293-1.06 0l-2.22 2.22V7.65c0-2.068-1.683-3.75-3.75-3.75h-5.85c-.414 0-.75.336-.75.75s.336.75.75.75h5.85c1.24 0 2.25 1.01 2.25 2.25v10.24l-2.22-2.22c-.293-.293-.768-.293-1.06 0s-.294.768 0 1.06l3.5 3.5c.145.147.337.22.53.22s.383-.072.53-.22l3.5-3.5c.294-.292.294-.767 0-1.06zm-10.66 3.28H7.26c-1.24 0-2.25-1.01-2.25-2.25V6.46l2.22 2.22c.148.147.34.22.532.22s.384-.073.53-.22c.293-.293.293-.768 0-1.06l-3.5-3.5c-.293-.294-.768-.294-1.06 0l-3.5 3.5c-.294.292-.294.767 0 1.06s.767.293 1.06 0l2.22-2.22V16.7c0 2.068 1.683 3.75 3.75 3.75h5.85c.414 0 .75-.336.75-.75s-.337-.75-.75-.75z\"></path></g></svg></div><div class=\"css-1dbjc4n r-xoduu5 r-1udh08x\"><span class=\"css-901oao css-16my406 r-1qd0xha r-n6v787 r-1sf4r6n r-1n0xq6e r-bcqeeo r-d3hbe1 r-1wgg2b2 r-axxi2z r-qvutc0\"><span class=\"css-901oao css-16my406 r-1qd0xha r-ad9z0x r-bcqeeo r-qvutc0\">7</span></span></div></div></div></div><div class=\"css-1dbjc4n r-1iusvr4 r-18u37iz r-16y2uox r-1h0z5md\"><div aria-label=\"22 Likes. Like\" class=\"css-18t94o4 css-1dbjc4n r-1777fci r-11cpok1 r-1ny4l3l r-bztko3 r-lrvibr\" data-focusable=\"true\" data-testid=\"like\" role=\"button\" tabindex=\"0\"><div class=\"css-901oao r-1awozwy r-1re7ezh r-6koalj r-1qd0xha r-a023e6 r-16dba41 r-1h0z5md r-ad9z0x r-bcqeeo r-o7ynqc r-clp7b1 r-3s2u2q r-qvutc0\" dir=\"ltr\"><div class=\"css-1dbjc4n r-xoduu5\"><div class=\"css-1dbjc4n r-1niwhzg r-sdzlij r-1p0dtai r-xoduu5 r-1d2f490 r-xf4iuw r-u8s1d r-zchlnj r-ipm5af r-o7ynqc r-6416eg\"></div><svg class=\"r-4qtqp9 r-yyyyoo r-1xvli5t r-dnmrzs r-bnwqim r-1plcrui r-lrvibr r-1hdv0qi\" viewbox=\"0 0 24 24\"><g><path d=\"M12 21.638h-.014C9.403 21.59 1.95 14.856 1.95 8.478c0-3.064 2.525-5.754 5.403-5.754 2.29 0 3.83 1.58 4.646 2.73.814-1.148 2.354-2.73 4.645-2.73 2.88 0 5.404 2.69 5.404 5.755 0 6.376-7.454 13.11-10.037 13.157H12zM7.354 4.225c-2.08 0-3.903 1.988-3.903 4.255 0 5.74 7.034 11.596 8.55 11.658 1.518-.062 8.55-5.917 8.55-11.658 0-2.267-1.823-4.255-3.903-4.255-2.528 0-3.94 2.936-3.952 2.965-.23.562-1.156.562-1.387 0-.014-.03-1.425-2.965-3.954-2.965z\"></path></g></svg></div><div class=\"css-1dbjc4n r-xoduu5 r-1udh08x\"><span class=\"css-901oao css-16my406 r-1qd0xha r-n6v787 r-1sf4r6n r-1n0xq6e r-bcqeeo r-d3hbe1 r-1wgg2b2 r-axxi2z r-qvutc0\"><span class=\"css-901oao css-16my406 r-1qd0xha r-ad9z0x r-bcqeeo r-qvutc0\">22</span></span></div></div></div></div><div class=\"css-1dbjc4n r-1mlwlqe r-18u37iz r-18kxxzh r-1h0z5md\"><div aria-expanded=\"false\" aria-haspopup=\"true\" aria-label=\"Share Tweet\" class=\"css-18t94o4 css-1dbjc4n r-1777fci r-11cpok1 r-1ny4l3l r-bztko3 r-lrvibr\" data-focusable=\"true\" role=\"button\" tabindex=\"0\"><div class=\"css-901oao r-1awozwy r-1re7ezh r-6koalj r-1qd0xha r-a023e6 r-16dba41 r-1h0z5md r-ad9z0x r-bcqeeo r-o7ynqc r-clp7b1 r-3s2u2q r-qvutc0\" dir=\"ltr\"><div class=\"css-1dbjc4n r-xoduu5\"><div class=\"css-1dbjc4n r-1niwhzg r-sdzlij r-1p0dtai r-xoduu5 r-1d2f490 r-xf4iuw r-u8s1d r-zchlnj r-ipm5af r-o7ynqc r-6416eg\"></div><svg class=\"r-4qtqp9 r-yyyyoo r-1xvli5t r-dnmrzs r-bnwqim r-1plcrui r-lrvibr r-1hdv0qi\" viewbox=\"0 0 24 24\"><g><path d=\"M17.53 7.47l-5-5c-.293-.293-.768-.293-1.06 0l-5 5c-.294.293-.294.768 0 1.06s.767.294 1.06 0l3.72-3.72V15c0 .414.336.75.75.75s.75-.336.75-.75V4.81l3.72 3.72c.146.147.338.22.53.22s.384-.072.53-.22c.293-.293.293-.767 0-1.06z\"></path><path d=\"M19.708 21.944H4.292C3.028 21.944 2 20.916 2 19.652V14c0-.414.336-.75.75-.75s.75.336.75.75v5.652c0 .437.355.792.792.792h15.416c.437 0 .792-.355.792-.792V14c0-.414.336-.75.75-.75s.75.336.75.75v5.652c0 1.264-1.028 2.292-2.292 2.292z\"></path></g></svg></div></div></div></div></div></div></div></div></div></div></div></article></div></div></div><div><div class=\"css-1dbjc4n r-my5ep6 r-qklmqi r-1adg3ll\"><div class=\"css-1dbjc4n\"><article class=\"css-1dbjc4n r-1loqt21 r-18u37iz r-1ny4l3l r-o7ynqc r-6416eg\" data-focusable=\"true\" role=\"article\" tabindex=\"0\"><div class=\"css-1dbjc4n r-eqz5dr r-16y2uox r-1wbh5a2\"><div class=\"css-1dbjc4n r-16y2uox r-1wbh5a2 r-1ny4l3l r-1udh08x r-1yt7n81 r-ry3cjt\"><div class=\"css-1dbjc4n\"><div class=\"css-1dbjc4n\"><div class=\"css-1dbjc4n r-18u37iz\"><div class=\"css-1dbjc4n r-1iusvr4 r-16y2uox r-m611by\"><div class=\"css-1dbjc4n r-zl2h9q\"><div class=\"css-1dbjc4n r-18u37iz\"><div class=\"css-1dbjc4n r-obd0qt r-18kxxzh r-zso239\" style=\"flex-basis: 49px;\"><svg class=\"r-1re7ezh r-4qtqp9 r-yyyyoo r-1xvli5t r-dnmrzs r-bnwqim r-1plcrui r-lrvibr r-1xzupcd\" viewbox=\"0 0 24 24\"><g><path d=\"M23.615 15.477c-.47-.47-1.23-.47-1.697 0l-1.326 1.326V7.4c0-2.178-1.772-3.95-3.95-3.95h-5.2c-.663 0-1.2.538-1.2 1.2s.537 1.2 1.2 1.2h5.2c.854 0 1.55.695 1.55 1.55v9.403l-1.326-1.326c-.47-.47-1.23-.47-1.697 0s-.47 1.23 0 1.697l3.374 3.375c.234.233.542.35.85.35s.613-.116.848-.35l3.375-3.376c.467-.47.467-1.23-.002-1.697zM12.562 18.5h-5.2c-.854 0-1.55-.695-1.55-1.55V7.547l1.326 1.326c.234.235.542.352.848.352s.614-.117.85-.352c.468-.47.468-1.23 0-1.697L5.46 3.8c-.47-.468-1.23-.468-1.697 0L.388 7.177c-.47.47-.47 1.23 0 1.697s1.23.47 1.697 0L3.41 7.547v9.403c0 2.178 1.773 3.95 3.95 3.95h5.2c.664 0 1.2-.538 1.2-1.2s-.535-1.2-1.198-1.2z\"></path></g></svg></div><div class=\"css-1dbjc4n r-1habvwh r-1iusvr4 r-16y2uox\"><div class=\"css-1dbjc4n\"><a class=\"css-4rbku5 css-18t94o4 css-901oao r-1re7ezh r-1loqt21 r-1qd0xha r-a023e6 r-16dba41 r-ad9z0x r-bcqeeo r-qvutc0\" data-focusable=\"true\" dir=\"auto\" href=\"/MarsWxReport\" role=\"link\"><span class=\"css-901oao css-16my406 css-cens5h r-1re7ezh r-1qd0xha r-n6v787 r-16dba41 r-1sf4r6n r-bcqeeo r-qvutc0\" data-testid=\"socialContext\" dir=\"ltr\" style=\"-webkit-line-clamp: 2;\"><span class=\"css-901oao css-16my406 r-1qd0xha r-ad9z0x r-bcqeeo r-qvutc0\" dir=\"ltr\"><span class=\"css-901oao css-16my406 r-1qd0xha r-ad9z0x r-bcqeeo r-qvutc0\">Mars Weather</span></span> Retweeted</span></a></div></div></div></div></div></div></div><div class=\"css-1dbjc4n r-18u37iz\" data-testid=\"tweet\"><div class=\"css-1dbjc4n r-1awozwy r-18kxxzh r-zso239\" style=\"flex-basis: 49px;\"><div class=\"css-1dbjc4n r-18kxxzh r-1wbh5a2 r-13qz1uu\"><div class=\"css-1dbjc4n r-1wbh5a2 r-dnmrzs\"><a class=\"css-4rbku5 css-18t94o4 css-1dbjc4n r-sdzlij r-1loqt21 r-1adg3ll r-ahm1il r-1ny4l3l r-1udh08x r-o7ynqc r-6416eg r-13qz1uu\" data-focusable=\"true\" href=\"/esaoperations\" role=\"link\"><div class=\"css-1dbjc4n r-1adg3ll r-1udh08x\" style=\"\"><div class=\"r-1adg3ll r-13qz1uu\" style=\"padding-bottom: 100%;\"></div><div class=\"r-1p0dtai r-1pi2tsx r-1d2f490 r-u8s1d r-ipm5af r-13qz1uu\"><div aria-label=\"\" class=\"css-1dbjc4n r-sdzlij r-1p0dtai r-1mlwlqe r-1d2f490 r-1udh08x r-u8s1d r-zchlnj r-ipm5af r-417010\"><div class=\"css-1dbjc4n r-1niwhzg r-vvn4in r-u6sd8q r-4gszlv r-1p0dtai r-1pi2tsx r-1d2f490 r-u8s1d r-zchlnj r-ipm5af r-13qz1uu r-1wyyakw\" style='background-image: url(\"https://pbs.twimg.com/profile_images/882544568805273600/AUXk6tLR_x96.jpg\");'></div><img alt=\"\" class=\"css-9pa8cd\" draggable=\"true\" src=\"https://pbs.twimg.com/profile_images/882544568805273600/AUXk6tLR_x96.jpg\"/></div></div></div><div class=\"css-1dbjc4n r-1twgtwe r-sdzlij r-rs99b7 r-1p0dtai r-1mi75qu r-1d2f490 r-1ny4l3l r-u8s1d r-zchlnj r-ipm5af r-o7ynqc r-6416eg\"></div></a></div></div></div><div class=\"css-1dbjc4n r-1iusvr4 r-16y2uox r-1777fci r-1mi0q7o\"><div class=\"css-1dbjc4n\"><div class=\"css-1dbjc4n r-zl2h9q\"><div class=\"css-1dbjc4n r-1awozwy r-18u37iz r-1wtj0ep\"><div class=\"css-1dbjc4n r-1d09ksm r-18u37iz r-1wbh5a2\"><div class=\"css-1dbjc4n r-1wbh5a2 r-dnmrzs\"><a class=\"css-4rbku5 css-18t94o4 css-1dbjc4n r-1loqt21 r-1wbh5a2 r-dnmrzs r-1ny4l3l\" data-focusable=\"true\" href=\"/esaoperations\" role=\"link\"><div class=\"css-1dbjc4n r-1awozwy r-18u37iz r-1wbh5a2 r-dnmrzs r-1ny4l3l\"><div class=\"css-1dbjc4n r-1awozwy r-18u37iz r-dnmrzs\"><div class=\"css-901oao css-bfa6kz r-hkyrab r-1qd0xha r-a023e6 r-vw2c0b r-ad9z0x r-bcqeeo r-3s2u2q r-qvutc0\" dir=\"auto\"><span class=\"css-901oao css-16my406 r-1qd0xha r-ad9z0x r-bcqeeo r-qvutc0\"><span class=\"css-901oao css-16my406 r-1qd0xha r-ad9z0x r-bcqeeo r-qvutc0\">ESA Operations</span></span></div><div class=\"css-901oao r-hkyrab r-18u37iz r-1q142lx r-1qd0xha r-a023e6 r-16dba41 r-ad9z0x r-bcqeeo r-qvutc0\" dir=\"auto\"><svg aria-label=\"Verified account\" class=\"r-13gxpu9 r-4qtqp9 r-yyyyoo r-1xvli5t r-9cviqr r-dnmrzs r-bnwqim r-1plcrui r-lrvibr\" viewbox=\"0 0 24 24\"><g><path d=\"M22.5 12.5c0-1.58-.875-2.95-2.148-3.6.154-.435.238-.905.238-1.4 0-2.21-1.71-3.998-3.818-3.998-.47 0-.92.084-1.336.25C14.818 2.415 13.51 1.5 12 1.5s-2.816.917-3.437 2.25c-.415-.165-.866-.25-1.336-.25-2.11 0-3.818 1.79-3.818 4 0 .494.083.964.237 1.4-1.272.65-2.147 2.018-2.147 3.6 0 1.495.782 2.798 1.942 3.486-.02.17-.032.34-.032.514 0 2.21 1.708 4 3.818 4 .47 0 .92-.086 1.335-.25.62 1.334 1.926 2.25 3.437 2.25 1.512 0 2.818-.916 3.437-2.25.415.163.865.248 1.336.248 2.11 0 3.818-1.79 3.818-4 0-.174-.012-.344-.033-.513 1.158-.687 1.943-1.99 1.943-3.484zm-6.616-3.334l-4.334 6.5c-.145.217-.382.334-.625.334-.143 0-.288-.04-.416-.126l-.115-.094-2.415-2.415c-.293-.293-.293-.768 0-1.06s.768-.294 1.06 0l1.77 1.767 3.825-5.74c.23-.345.696-.436 1.04-.207.346.23.44.696.21 1.04z\"></path></g></svg></div></div><div class=\"css-1dbjc4n r-18u37iz r-1wbh5a2 r-1f6r7vd\"><div class=\"css-901oao css-bfa6kz r-1re7ezh r-18u37iz r-1qd0xha r-a023e6 r-16dba41 r-ad9z0x r-bcqeeo r-qvutc0\" dir=\"ltr\"><span class=\"css-901oao css-16my406 r-1qd0xha r-ad9z0x r-bcqeeo r-qvutc0\">@esaoperations</span></div></div></div></a></div><div aria-hidden=\"true\" class=\"css-901oao r-1re7ezh r-1q142lx r-1qd0xha r-a023e6 r-16dba41 r-ad9z0x r-bcqeeo r-ou255f r-qvutc0\" dir=\"auto\"><span class=\"css-901oao css-16my406 r-1qd0xha r-ad9z0x r-bcqeeo r-qvutc0\">·</span></div><a aria-label=\"Jul 29\" class=\"r-1re7ezh r-1loqt21 r-1q142lx r-1qd0xha r-a023e6 r-16dba41 r-ad9z0x r-bcqeeo r-3s2u2q r-qvutc0 css-4rbku5 css-18t94o4 css-901oao\" data-focusable=\"true\" dir=\"auto\" href=\"/esaoperations/status/1288379209358938112\" role=\"link\" title=\"12:41 AM · Jul 29, 2020\"><time datetime=\"2020-07-29T07:41:55.000Z\">Jul 29</time></a></div><div class=\"css-1dbjc4n r-18u37iz r-1h0z5md r-1joea0r\"><div aria-haspopup=\"true\" aria-label=\"More\" class=\"css-18t94o4 css-1dbjc4n r-1777fci r-11cpok1 r-1ny4l3l r-bztko3 r-lrvibr\" data-focusable=\"true\" data-testid=\"caret\" role=\"button\" tabindex=\"0\"><div class=\"css-901oao r-1awozwy r-1re7ezh r-6koalj r-1qd0xha r-a023e6 r-16dba41 r-1h0z5md r-ad9z0x r-bcqeeo r-o7ynqc r-clp7b1 r-3s2u2q r-qvutc0\" dir=\"ltr\"><div class=\"css-1dbjc4n r-xoduu5\"><div class=\"css-1dbjc4n r-1niwhzg r-sdzlij r-1p0dtai r-xoduu5 r-1d2f490 r-podbf7 r-u8s1d r-zchlnj r-ipm5af r-o7ynqc r-6416eg\"></div><svg class=\"r-4qtqp9 r-yyyyoo r-ip8ujx r-dnmrzs r-bnwqim r-1plcrui r-lrvibr r-27tl0q\" viewbox=\"0 0 24 24\"><g><path d=\"M20.207 8.147c-.39-.39-1.023-.39-1.414 0L12 14.94 5.207 8.147c-.39-.39-1.023-.39-1.414 0-.39.39-.39 1.023 0 1.414l7.5 7.5c.195.196.45.294.707.294s.512-.098.707-.293l7.5-7.5c.39-.39.39-1.022 0-1.413z\"></path></g></svg></div></div></div></div></div></div></div><div class=\"css-1dbjc4n\"><div class=\"css-1dbjc4n\"><div class=\"css-901oao r-hkyrab r-1qd0xha r-a023e6 r-16dba41 r-ad9z0x r-bcqeeo r-bnwqim r-qvutc0\" dir=\"auto\" lang=\"en\"><span class=\"css-901oao css-16my406 r-1qd0xha r-ad9z0x r-bcqeeo r-qvutc0\">A mysteriously long, thin cloud has again appeared over the 20-km high Arsia Mons volcano on Mars, revealed in images captured by the </span><div class=\"css-1dbjc4n r-xoduu5\"><span class=\"r-18u37iz\"><a class=\"css-4rbku5 css-18t94o4 css-901oao css-16my406 r-1n1174f r-1loqt21 r-1qd0xha r-ad9z0x r-bcqeeo r-qvutc0\" data-focusable=\"true\" dir=\"ltr\" href=\"/esamarswebcam\" role=\"link\">@esamarswebcam</a></span></div><span class=\"css-901oao css-16my406 r-1qd0xha r-ad9z0x r-bcqeeo r-qvutc0\"> on </span><span class=\"r-18u37iz\"><a class=\"css-4rbku5 css-18t94o4 css-901oao css-16my406 r-1n1174f r-1loqt21 r-1qd0xha r-ad9z0x r-bcqeeo r-qvutc0\" data-focusable=\"true\" dir=\"ltr\" href=\"/hashtag/MarsExpress?src=hashtag_click\" role=\"link\">#MarsExpress</a></span><span class=\"css-901oao css-16my406 r-1qd0xha r-ad9z0x r-bcqeeo r-qvutc0\">\n",
+       "</span><span class=\"css-901oao css-16my406 r-4qtqp9 r-ip8ujx r-sjv1od r-zw8f10 r-bnwqim r-h9hxbl\" dir=\"auto\"><div aria-label=\"➡️\" class=\"css-1dbjc4n r-xoduu5 r-1mlwlqe r-1d2f490 r-1udh08x r-u8s1d r-h9hxbl r-417010\" style=\"height: 1.2em;\"><div class=\"css-1dbjc4n r-1niwhzg r-vvn4in r-u6sd8q r-x3cy2q r-1p0dtai r-xoduu5 r-1pi2tsx r-1d2f490 r-u8s1d r-zchlnj r-ipm5af r-13qz1uu r-1wyyakw\" style='background-image: url(\"https://abs-0.twimg.com/emoji/v2/svg/27a1.svg\");'></div><img alt=\"➡️\" class=\"css-9pa8cd\" draggable=\"false\" src=\"https://abs-0.twimg.com/emoji/v2/svg/27a1.svg\"/></div></span><a class=\"r-1n1174f r-1loqt21 r-1qd0xha r-ad9z0x r-bcqeeo r-qvutc0 css-4rbku5 css-18t94o4 css-901oao css-16my406\" data-focusable=\"true\" dir=\"ltr\" href=\"https://t.co/wo6JuPOEuQ?amp=1\" rel=\"noopener noreferrer\" role=\"link\" target=\"_blank\" title=\"https://www.esa.int/ESA_Multimedia/Images/2020/07/Return_of_the_extremely_elongated_cloud_on_Mars#.XyEf2HH9Rbg.link\"><span aria-hidden=\"true\" class=\"css-901oao css-16my406 r-1qd0xha r-hiw28u r-ad9z0x r-bcqeeo r-qvutc0\">https://</span>esa.int/ESA_Multimedia<span aria-hidden=\"true\" class=\"css-901oao css-16my406 r-1qd0xha r-hiw28u r-ad9z0x r-bcqeeo r-qvutc0\">/Images/2020/07/Return_of_the_extremely_elongated_cloud_on_Mars#.XyEf2HH9Rbg.link</span><span aria-hidden=\"true\" class=\"css-901oao css-16my406 r-1qd0xha r-ad9z0x r-bcqeeo r-lrvibr r-qvutc0\">…</span></a></div></div><div class=\"css-1dbjc4n\"><div class=\"css-1dbjc4n\"><div class=\"css-1dbjc4n r-1udh08x\"><div class=\"css-1dbjc4n r-9x6qib r-1ylenci r-1phboty r-rs99b7 r-156q2ks r-1udh08x\"><div class=\"css-1dbjc4n r-1adg3ll r-1udh08x\"><div class=\"r-1adg3ll r-13qz1uu\" style=\"padding-bottom: 100%;\"></div><div class=\"r-1p0dtai r-1pi2tsx r-1d2f490 r-u8s1d r-ipm5af r-13qz1uu\"><div class=\"css-1dbjc4n r-1p0dtai r-1d2f490 r-u8s1d r-zchlnj r-ipm5af\" data-testid=\"placementTracking\"><div class=\"css-1dbjc4n r-1p0dtai r-1d2f490 r-u8s1d r-zchlnj r-ipm5af\"><div class=\"css-1dbjc4n r-1adg3ll r-1pi2tsx r-1udh08x r-bnwqim r-13qz1uu\"><div class=\"r-1adg3ll r-13qz1uu\" style=\"padding-bottom: 56.25%;\"></div><div class=\"r-1p0dtai r-1pi2tsx r-1d2f490 r-u8s1d r-ipm5af r-13qz1uu\"><div style=\"height: 100%; position: relative; transform: translateZ(0px); width: 100%;\"><div style=\"height: 100%; position: absolute; width: 100%;\"><div style=\"position: relative; width: 100%; height: 100%; background-color: transparent; overflow: hidden;\"><video aria-label=\"Embedded video\" playsinline=\"\" poster=\"https://pbs.twimg.com/tweet_video_thumb/EeE6KCWXYAEAiMU.jpg\" preload=\"none\" src=\"https://video.twimg.com/tweet_video/EeE6KCWXYAEAiMU.mp4\" style=\"width: 100%; height: 100%; position: absolute; background-color: black; top: 0%; left: 0%; transform: rotate(0deg) scale(1.005);\" type=\"video/mp4\"></video></div></div><div class=\"css-1dbjc4n r-1p0dtai r-1d2f490 r-u8s1d r-zchlnj r-ipm5af\"><div><div class=\"css-1dbjc4n r-1p0dtai r-1loqt21 r-1d2f490 r-u8s1d r-zchlnj r-ipm5af\"></div><div class=\"css-18t94o4 css-1dbjc4n r-1awozwy r-1p0dtai r-1777fci r-1d2f490 r-1ny4l3l r-u8s1d r-zchlnj r-ipm5af\" role=\"button\"><div class=\"css-1dbjc4n r-1p0dtai r-1mlwlqe r-1d2f490 r-1udh08x r-u8s1d r-zchlnj r-ipm5af r-417010\"><div class=\"css-1dbjc4n r-1niwhzg r-vvn4in r-u6sd8q r-4gszlv r-1p0dtai r-1pi2tsx r-1d2f490 r-u8s1d r-zchlnj r-ipm5af r-13qz1uu r-1wyyakw\" style='background-image: url(\"https://pbs.twimg.com/tweet_video_thumb/EeE6KCWXYAEAiMU.jpg\");'></div><img alt=\"\" class=\"css-9pa8cd\" draggable=\"false\" src=\"https://pbs.twimg.com/tweet_video_thumb/EeE6KCWXYAEAiMU.jpg\"/></div><div aria-label=\"Play Video\" class=\"css-18t94o4 css-1dbjc4n r-urgr8i r-11mg6pl r-sdzlij r-1phboty r-14f9gny r-e6wyp1 r-1ny4l3l r-o7ynqc r-6416eg r-1p15a4t\" data-focusable=\"true\" role=\"button\" tabindex=\"0\"><div class=\"css-1dbjc4n r-1awozwy r-1pi2tsx r-1777fci r-u8s1d r-13qz1uu\"><svg class=\"r-jwli3a r-4qtqp9 r-yyyyoo r-1sa8knb r-dnmrzs r-1dsia8u r-bnwqim r-1plcrui r-lrvibr r-gcko2u\" viewbox=\"0 0 24 24\"><g><path d=\"M20.436 11.37L5.904 2.116c-.23-.147-.523-.158-.762-.024-.24.132-.39.384-.39.657v18.5c0 .273.15.525.39.657.112.063.236.093.36.093.14 0 .28-.04.402-.117l14.53-9.248c.218-.138.35-.376.35-.633 0-.256-.132-.495-.348-.633z\"></path></g></svg></div></div></div><div style=\"transition-duration: 250ms; transition-property: opacity, height; transition-timing-function: ease; will-change: opacity; opacity: 1;\"><div class=\"css-1dbjc4n r-1ebgqk7 r-18u37iz r-1t68eob r-633pao r-u8s1d\"><div class=\"css-1dbjc4n r-1awozwy r-k200y r-loe9s5 r-re1h2s r-qpmf2f r-1f0042m r-1as3g83 r-dfv94e r-z80fyv r-1777fci r-ou255f r-633pao\"><div class=\"css-901oao r-jwli3a r-1qd0xha r-n6v787 r-16dba41 r-1sf4r6n r-bcqeeo r-q4m81j r-qvutc0\" dir=\"auto\"><span class=\"css-901oao css-16my406 r-1qd0xha r-vw2c0b r-ad9z0x r-bcqeeo r-qvutc0\"><span class=\"css-901oao css-16my406 r-1qd0xha r-ad9z0x r-bcqeeo r-qvutc0\">GIF</span></span></div></div></div></div><div style=\"transition-duration: 250ms; transition-property: opacity, height; transition-timing-function: ease; will-change: opacity; opacity: 1;\"></div><div style=\"transition-duration: 250ms; transition-property: opacity, height; transition-timing-function: ease; will-change: opacity; opacity: 0;\"></div></div></div></div></div></div></div></div></div></div></div></div></div></div><div aria-label=\"37 replies, 500 Retweets, 1223 likes\" class=\"css-1dbjc4n r-18u37iz r-1wtj0ep r-156q2ks r-1mdbhws\" role=\"group\"><div class=\"css-1dbjc4n r-1iusvr4 r-18u37iz r-16y2uox r-1h0z5md\"><div aria-label=\"37 Replies. Reply\" class=\"css-18t94o4 css-1dbjc4n r-1777fci r-11cpok1 r-1ny4l3l r-bztko3 r-lrvibr\" data-focusable=\"true\" data-testid=\"reply\" role=\"button\" tabindex=\"0\"><div class=\"css-901oao r-1awozwy r-1re7ezh r-6koalj r-1qd0xha r-a023e6 r-16dba41 r-1h0z5md r-ad9z0x r-bcqeeo r-o7ynqc r-clp7b1 r-3s2u2q r-qvutc0\" dir=\"ltr\"><div class=\"css-1dbjc4n r-xoduu5\"><div class=\"css-1dbjc4n r-1niwhzg r-sdzlij r-1p0dtai r-xoduu5 r-1d2f490 r-xf4iuw r-u8s1d r-zchlnj r-ipm5af r-o7ynqc r-6416eg\"></div><svg class=\"r-4qtqp9 r-yyyyoo r-1xvli5t r-dnmrzs r-bnwqim r-1plcrui r-lrvibr r-1hdv0qi\" viewbox=\"0 0 24 24\"><g><path d=\"M14.046 2.242l-4.148-.01h-.002c-4.374 0-7.8 3.427-7.8 7.802 0 4.098 3.186 7.206 7.465 7.37v3.828c0 .108.044.286.12.403.142.225.384.347.632.347.138 0 .277-.038.402-.118.264-.168 6.473-4.14 8.088-5.506 1.902-1.61 3.04-3.97 3.043-6.312v-.017c-.006-4.367-3.43-7.787-7.8-7.788zm3.787 12.972c-1.134.96-4.862 3.405-6.772 4.643V16.67c0-.414-.335-.75-.75-.75h-.396c-3.66 0-6.318-2.476-6.318-5.886 0-3.534 2.768-6.302 6.3-6.302l4.147.01h.002c3.532 0 6.3 2.766 6.302 6.296-.003 1.91-.942 3.844-2.514 5.176z\"></path></g></svg></div><div class=\"css-1dbjc4n r-xoduu5 r-1udh08x\"><span class=\"css-901oao css-16my406 r-1qd0xha r-n6v787 r-1sf4r6n r-1n0xq6e r-bcqeeo r-d3hbe1 r-1wgg2b2 r-axxi2z r-qvutc0\"><span class=\"css-901oao css-16my406 r-1qd0xha r-ad9z0x r-bcqeeo r-qvutc0\">37</span></span></div></div></div></div><div class=\"css-1dbjc4n r-1iusvr4 r-18u37iz r-16y2uox r-1h0z5md\"><div aria-label=\"500 Retweets. Retweet\" class=\"css-18t94o4 css-1dbjc4n r-1777fci r-11cpok1 r-1ny4l3l r-bztko3 r-lrvibr\" data-focusable=\"true\" data-testid=\"retweet\" role=\"button\" tabindex=\"0\"><div class=\"css-901oao r-1awozwy r-1re7ezh r-6koalj r-1qd0xha r-a023e6 r-16dba41 r-1h0z5md r-ad9z0x r-bcqeeo r-o7ynqc r-clp7b1 r-3s2u2q r-qvutc0\" dir=\"ltr\"><div class=\"css-1dbjc4n r-xoduu5\"><div class=\"css-1dbjc4n r-1niwhzg r-sdzlij r-1p0dtai r-xoduu5 r-1d2f490 r-xf4iuw r-u8s1d r-zchlnj r-ipm5af r-o7ynqc r-6416eg\"></div><svg class=\"r-4qtqp9 r-yyyyoo r-1xvli5t r-dnmrzs r-bnwqim r-1plcrui r-lrvibr r-1hdv0qi\" viewbox=\"0 0 24 24\"><g><path d=\"M23.77 15.67c-.292-.293-.767-.293-1.06 0l-2.22 2.22V7.65c0-2.068-1.683-3.75-3.75-3.75h-5.85c-.414 0-.75.336-.75.75s.336.75.75.75h5.85c1.24 0 2.25 1.01 2.25 2.25v10.24l-2.22-2.22c-.293-.293-.768-.293-1.06 0s-.294.768 0 1.06l3.5 3.5c.145.147.337.22.53.22s.383-.072.53-.22l3.5-3.5c.294-.292.294-.767 0-1.06zm-10.66 3.28H7.26c-1.24 0-2.25-1.01-2.25-2.25V6.46l2.22 2.22c.148.147.34.22.532.22s.384-.073.53-.22c.293-.293.293-.768 0-1.06l-3.5-3.5c-.293-.294-.768-.294-1.06 0l-3.5 3.5c-.294.292-.294.767 0 1.06s.767.293 1.06 0l2.22-2.22V16.7c0 2.068 1.683 3.75 3.75 3.75h5.85c.414 0 .75-.336.75-.75s-.337-.75-.75-.75z\"></path></g></svg></div><div class=\"css-1dbjc4n r-xoduu5 r-1udh08x\"><span class=\"css-901oao css-16my406 r-1qd0xha r-n6v787 r-1sf4r6n r-1n0xq6e r-bcqeeo r-d3hbe1 r-1wgg2b2 r-axxi2z r-qvutc0\"><span class=\"css-901oao css-16my406 r-1qd0xha r-ad9z0x r-bcqeeo r-qvutc0\">500</span></span></div></div></div></div><div class=\"css-1dbjc4n r-1iusvr4 r-18u37iz r-16y2uox r-1h0z5md\"><div aria-label=\"1223 Likes. Like\" class=\"css-18t94o4 css-1dbjc4n r-1777fci r-11cpok1 r-1ny4l3l r-bztko3 r-lrvibr\" data-focusable=\"true\" data-testid=\"like\" role=\"button\" tabindex=\"0\"><div class=\"css-901oao r-1awozwy r-1re7ezh r-6koalj r-1qd0xha r-a023e6 r-16dba41 r-1h0z5md r-ad9z0x r-bcqeeo r-o7ynqc r-clp7b1 r-3s2u2q r-qvutc0\" dir=\"ltr\"><div class=\"css-1dbjc4n r-xoduu5\"><div class=\"css-1dbjc4n r-1niwhzg r-sdzlij r-1p0dtai r-xoduu5 r-1d2f490 r-xf4iuw r-u8s1d r-zchlnj r-ipm5af r-o7ynqc r-6416eg\"></div><svg class=\"r-4qtqp9 r-yyyyoo r-1xvli5t r-dnmrzs r-bnwqim r-1plcrui r-lrvibr r-1hdv0qi\" viewbox=\"0 0 24 24\"><g><path d=\"M12 21.638h-.014C9.403 21.59 1.95 14.856 1.95 8.478c0-3.064 2.525-5.754 5.403-5.754 2.29 0 3.83 1.58 4.646 2.73.814-1.148 2.354-2.73 4.645-2.73 2.88 0 5.404 2.69 5.404 5.755 0 6.376-7.454 13.11-10.037 13.157H12zM7.354 4.225c-2.08 0-3.903 1.988-3.903 4.255 0 5.74 7.034 11.596 8.55 11.658 1.518-.062 8.55-5.917 8.55-11.658 0-2.267-1.823-4.255-3.903-4.255-2.528 0-3.94 2.936-3.952 2.965-.23.562-1.156.562-1.387 0-.014-.03-1.425-2.965-3.954-2.965z\"></path></g></svg></div><div class=\"css-1dbjc4n r-xoduu5 r-1udh08x\"><span class=\"css-901oao css-16my406 r-1qd0xha r-n6v787 r-1sf4r6n r-1n0xq6e r-bcqeeo r-d3hbe1 r-1wgg2b2 r-axxi2z r-qvutc0\"><span class=\"css-901oao css-16my406 r-1qd0xha r-ad9z0x r-bcqeeo r-qvutc0\">1.2K</span></span></div></div></div></div><div class=\"css-1dbjc4n r-1mlwlqe r-18u37iz r-18kxxzh r-1h0z5md\"><div aria-expanded=\"false\" aria-haspopup=\"true\" aria-label=\"Share Tweet\" class=\"css-18t94o4 css-1dbjc4n r-1777fci r-11cpok1 r-1ny4l3l r-bztko3 r-lrvibr\" data-focusable=\"true\" role=\"button\" tabindex=\"0\"><div class=\"css-901oao r-1awozwy r-1re7ezh r-6koalj r-1qd0xha r-a023e6 r-16dba41 r-1h0z5md r-ad9z0x r-bcqeeo r-o7ynqc r-clp7b1 r-3s2u2q r-qvutc0\" dir=\"ltr\"><div class=\"css-1dbjc4n r-xoduu5\"><div class=\"css-1dbjc4n r-1niwhzg r-sdzlij r-1p0dtai r-xoduu5 r-1d2f490 r-xf4iuw r-u8s1d r-zchlnj r-ipm5af r-o7ynqc r-6416eg\"></div><svg class=\"r-4qtqp9 r-yyyyoo r-1xvli5t r-dnmrzs r-bnwqim r-1plcrui r-lrvibr r-1hdv0qi\" viewbox=\"0 0 24 24\"><g><path d=\"M17.53 7.47l-5-5c-.293-.293-.768-.293-1.06 0l-5 5c-.294.293-.294.768 0 1.06s.767.294 1.06 0l3.72-3.72V15c0 .414.336.75.75.75s.75-.336.75-.75V4.81l3.72 3.72c.146.147.338.22.53.22s.384-.072.53-.22c.293-.293.293-.767 0-1.06z\"></path><path d=\"M19.708 21.944H4.292C3.028 21.944 2 20.916 2 19.652V14c0-.414.336-.75.75-.75s.75.336.75.75v5.652c0 .437.355.792.792.792h15.416c.437 0 .792-.355.792-.792V14c0-.414.336-.75.75-.75s.75.336.75.75v5.652c0 1.264-1.028 2.292-2.292 2.292z\"></path></g></svg></div></div></div></div></div></div></div></div></div></div><a class=\"css-4rbku5 css-18t94o4 css-1dbjc4n r-1loqt21 r-1ny4l3l r-1udh08x r-1j3t67a r-o7ynqc r-6416eg\" data-focusable=\"true\" href=\"/esaoperations/status/1288379209358938112\" role=\"link\"><div class=\"css-1dbjc4n r-18u37iz\"><div class=\"css-1dbjc4n r-1awozwy r-6koalj r-18kxxzh r-zso239 r-bnwqim\" style=\"flex-basis: 49px;\"></div><div class=\"css-1dbjc4n r-1iusvr4 r-16y2uox r-1w50u8q\"><div class=\"css-901oao r-1n1174f r-1qd0xha r-a023e6 r-16dba41 r-ad9z0x r-bcqeeo r-qvutc0\" dir=\"auto\"><span class=\"css-901oao css-16my406 r-1qd0xha r-ad9z0x r-bcqeeo r-qvutc0\">Show this thread</span></div></div></div></a></div></article></div></div></div><div><div class=\"css-1dbjc4n r-my5ep6 r-qklmqi r-1adg3ll\"><div class=\"css-1dbjc4n\"><article class=\"css-1dbjc4n r-1loqt21 r-18u37iz r-1ny4l3l r-o7ynqc r-6416eg\" data-focusable=\"true\" role=\"article\" tabindex=\"0\"><div class=\"css-1dbjc4n r-eqz5dr r-16y2uox r-1wbh5a2\"><div class=\"css-1dbjc4n r-16y2uox r-1wbh5a2 r-1ny4l3l r-1udh08x r-1yt7n81 r-ry3cjt\"><div class=\"css-1dbjc4n\"><div class=\"css-1dbjc4n\"><div class=\"css-1dbjc4n r-18u37iz\"><div class=\"css-1dbjc4n r-1iusvr4 r-16y2uox r-m611by\"></div></div></div><div class=\"css-1dbjc4n r-18u37iz\" data-testid=\"tweet\"><div class=\"css-1dbjc4n r-1awozwy r-18kxxzh r-zso239\" style=\"flex-basis: 49px;\"><div class=\"css-1dbjc4n r-18kxxzh r-1wbh5a2 r-13qz1uu\"><div class=\"css-1dbjc4n r-1wbh5a2 r-dnmrzs\"><a class=\"css-4rbku5 css-18t94o4 css-1dbjc4n r-sdzlij r-1loqt21 r-1adg3ll r-ahm1il r-1ny4l3l r-1udh08x r-o7ynqc r-6416eg r-13qz1uu\" data-focusable=\"true\" href=\"/MarsWxReport\" role=\"link\"><div class=\"css-1dbjc4n r-1adg3ll r-1udh08x\" style=\"\"><div class=\"r-1adg3ll r-13qz1uu\" style=\"padding-bottom: 100%;\"></div><div class=\"r-1p0dtai r-1pi2tsx r-1d2f490 r-u8s1d r-ipm5af r-13qz1uu\"><div aria-label=\"\" class=\"css-1dbjc4n r-sdzlij r-1p0dtai r-1mlwlqe r-1d2f490 r-1udh08x r-u8s1d r-zchlnj r-ipm5af r-417010\"><div class=\"css-1dbjc4n r-1niwhzg r-vvn4in r-u6sd8q r-4gszlv r-1p0dtai r-1pi2tsx r-1d2f490 r-u8s1d r-zchlnj r-ipm5af r-13qz1uu r-1wyyakw\" style='background-image: url(\"https://pbs.twimg.com/profile_images/2552209293/220px-Mars_atmosphere_x96.jpg\");'></div><img alt=\"\" class=\"css-9pa8cd\" draggable=\"true\" src=\"https://pbs.twimg.com/profile_images/2552209293/220px-Mars_atmosphere_x96.jpg\"/></div></div></div><div class=\"css-1dbjc4n r-1twgtwe r-sdzlij r-rs99b7 r-1p0dtai r-1mi75qu r-1d2f490 r-1ny4l3l r-u8s1d r-zchlnj r-ipm5af r-o7ynqc r-6416eg\"></div></a></div></div></div><div class=\"css-1dbjc4n r-1iusvr4 r-16y2uox r-1777fci r-1mi0q7o\"><div class=\"css-1dbjc4n\"><div class=\"css-1dbjc4n r-zl2h9q\"><div class=\"css-1dbjc4n r-1awozwy r-18u37iz r-1wtj0ep\"><div class=\"css-1dbjc4n r-1d09ksm r-18u37iz r-1wbh5a2\"><div class=\"css-1dbjc4n r-1wbh5a2 r-dnmrzs\"><a class=\"css-4rbku5 css-18t94o4 css-1dbjc4n r-1loqt21 r-1wbh5a2 r-dnmrzs r-1ny4l3l\" data-focusable=\"true\" href=\"/MarsWxReport\" role=\"link\"><div class=\"css-1dbjc4n r-1awozwy r-18u37iz r-1wbh5a2 r-dnmrzs r-1ny4l3l\"><div class=\"css-1dbjc4n r-1awozwy r-18u37iz r-dnmrzs\"><div class=\"css-901oao css-bfa6kz r-hkyrab r-1qd0xha r-a023e6 r-vw2c0b r-ad9z0x r-bcqeeo r-3s2u2q r-qvutc0\" dir=\"auto\"><span class=\"css-901oao css-16my406 r-1qd0xha r-ad9z0x r-bcqeeo r-qvutc0\"><span class=\"css-901oao css-16my406 r-1qd0xha r-ad9z0x r-bcqeeo r-qvutc0\">Mars Weather</span></span></div><div class=\"css-901oao r-hkyrab r-18u37iz r-1q142lx r-1qd0xha r-a023e6 r-16dba41 r-ad9z0x r-bcqeeo r-qvutc0\" dir=\"auto\"></div></div><div class=\"css-1dbjc4n r-18u37iz r-1wbh5a2 r-1f6r7vd\"><div class=\"css-901oao css-bfa6kz r-1re7ezh r-18u37iz r-1qd0xha r-a023e6 r-16dba41 r-ad9z0x r-bcqeeo r-qvutc0\" dir=\"ltr\"><span class=\"css-901oao css-16my406 r-1qd0xha r-ad9z0x r-bcqeeo r-qvutc0\">@MarsWxReport</span></div></div></div></a></div><div aria-hidden=\"true\" class=\"css-901oao r-1re7ezh r-1q142lx r-1qd0xha r-a023e6 r-16dba41 r-ad9z0x r-bcqeeo r-ou255f r-qvutc0\" dir=\"auto\"><span class=\"css-901oao css-16my406 r-1qd0xha r-ad9z0x r-bcqeeo r-qvutc0\">·</span></div><a aria-label=\"Jul 29\" class=\"r-1re7ezh r-1loqt21 r-1q142lx r-1qd0xha r-a023e6 r-16dba41 r-ad9z0x r-bcqeeo r-3s2u2q r-qvutc0 css-4rbku5 css-18t94o4 css-901oao\" data-focusable=\"true\" dir=\"auto\" href=\"/MarsWxReport/status/1288457045524520963\" role=\"link\" title=\"5:51 AM · Jul 29, 2020\"><time datetime=\"2020-07-29T12:51:12.000Z\">Jul 29</time></a></div><div class=\"css-1dbjc4n r-18u37iz r-1h0z5md r-1joea0r\"><div aria-haspopup=\"true\" aria-label=\"More\" class=\"css-18t94o4 css-1dbjc4n r-1777fci r-11cpok1 r-1ny4l3l r-bztko3 r-lrvibr\" data-focusable=\"true\" data-testid=\"caret\" role=\"button\" tabindex=\"0\"><div class=\"css-901oao r-1awozwy r-1re7ezh r-6koalj r-1qd0xha r-a023e6 r-16dba41 r-1h0z5md r-ad9z0x r-bcqeeo r-o7ynqc r-clp7b1 r-3s2u2q r-qvutc0\" dir=\"ltr\"><div class=\"css-1dbjc4n r-xoduu5\"><div class=\"css-1dbjc4n r-1niwhzg r-sdzlij r-1p0dtai r-xoduu5 r-1d2f490 r-podbf7 r-u8s1d r-zchlnj r-ipm5af r-o7ynqc r-6416eg\"></div><svg class=\"r-4qtqp9 r-yyyyoo r-ip8ujx r-dnmrzs r-bnwqim r-1plcrui r-lrvibr r-27tl0q\" viewbox=\"0 0 24 24\"><g><path d=\"M20.207 8.147c-.39-.39-1.023-.39-1.414 0L12 14.94 5.207 8.147c-.39-.39-1.023-.39-1.414 0-.39.39-.39 1.023 0 1.414l7.5 7.5c.195.196.45.294.707.294s.512-.098.707-.293l7.5-7.5c.39-.39.39-1.022 0-1.413z\"></path></g></svg></div></div></div></div></div></div></div><div class=\"css-1dbjc4n\"><div class=\"css-1dbjc4n\"><div class=\"css-901oao r-hkyrab r-1qd0xha r-a023e6 r-16dba41 r-ad9z0x r-bcqeeo r-bnwqim r-qvutc0\" dir=\"auto\" lang=\"en\"><span class=\"css-901oao css-16my406 r-1qd0xha r-ad9z0x r-bcqeeo r-qvutc0\">InSight sol 594 (2020-07-28) low -91.8ºC (-133.2ºF) high -16.6ºC (2.2ºF)\n",
+       "winds from the WNW at 8.0 m/s (17.8 mph) gusting to 20.7 m/s (46.4 mph)\n",
+       "pressure at 7.90 hPa</span></div></div><div class=\"css-1dbjc4n\"><div class=\"css-1dbjc4n\"><div class=\"css-1dbjc4n r-1udh08x\"><div class=\"css-1dbjc4n r-9x6qib r-1ylenci r-1phboty r-rs99b7 r-156q2ks r-1udh08x\"><div class=\"css-1dbjc4n\"><a class=\"css-4rbku5 css-18t94o4 css-1dbjc4n r-1loqt21 r-1ny4l3l\" data-focusable=\"true\" href=\"/MarsWxReport/status/1288457045524520963/photo/1\" role=\"link\"><div class=\"css-1dbjc4n r-1adg3ll r-1udh08x\" style=\"\"><div class=\"r-1adg3ll r-13qz1uu\" style=\"padding-bottom: 56.25%;\"></div><div class=\"r-1p0dtai r-1pi2tsx r-1d2f490 r-u8s1d r-ipm5af r-13qz1uu\"><div aria-label=\"Image\" class=\"css-1dbjc4n r-1p0dtai r-1mlwlqe r-1d2f490 r-11wrixw r-1udh08x r-u8s1d r-zchlnj r-ipm5af r-417010\" data-testid=\"tweetPhoto\" style=\"margin-bottom: 0px; margin-right: 0px; margin-top: 0px;\"><div class=\"css-1dbjc4n r-1niwhzg r-vvn4in r-u6sd8q r-4gszlv r-1p0dtai r-1pi2tsx r-1d2f490 r-u8s1d r-zchlnj r-ipm5af r-13qz1uu r-1wyyakw\" style='background-image: url(\"https://pbs.twimg.com/media/EeGE2hJWAAEufsh?format=png&amp;name=900x900\");'></div><img alt=\"Image\" class=\"css-9pa8cd\" draggable=\"true\" src=\"https://pbs.twimg.com/media/EeGE2hJWAAEufsh?format=png&amp;name=900x900\"/></div></div></div></a></div></div></div></div></div><div aria-label=\"15 Retweets, 24 likes\" class=\"css-1dbjc4n r-18u37iz r-1wtj0ep r-156q2ks r-1mdbhws\" role=\"group\"><div class=\"css-1dbjc4n r-1iusvr4 r-18u37iz r-16y2uox r-1h0z5md\"><div aria-label=\"Reply\" class=\"css-18t94o4 css-1dbjc4n r-1777fci r-11cpok1 r-1ny4l3l r-bztko3 r-lrvibr\" data-focusable=\"true\" data-testid=\"reply\" role=\"button\" tabindex=\"0\"><div class=\"css-901oao r-1awozwy r-1re7ezh r-6koalj r-1qd0xha r-a023e6 r-16dba41 r-1h0z5md r-ad9z0x r-bcqeeo r-o7ynqc r-clp7b1 r-3s2u2q r-qvutc0\" dir=\"ltr\"><div class=\"css-1dbjc4n r-xoduu5\"><div class=\"css-1dbjc4n r-1niwhzg r-sdzlij r-1p0dtai r-xoduu5 r-1d2f490 r-xf4iuw r-u8s1d r-zchlnj r-ipm5af r-o7ynqc r-6416eg\"></div><svg class=\"r-4qtqp9 r-yyyyoo r-1xvli5t r-dnmrzs r-bnwqim r-1plcrui r-lrvibr r-1hdv0qi\" viewbox=\"0 0 24 24\"><g><path d=\"M14.046 2.242l-4.148-.01h-.002c-4.374 0-7.8 3.427-7.8 7.802 0 4.098 3.186 7.206 7.465 7.37v3.828c0 .108.044.286.12.403.142.225.384.347.632.347.138 0 .277-.038.402-.118.264-.168 6.473-4.14 8.088-5.506 1.902-1.61 3.04-3.97 3.043-6.312v-.017c-.006-4.367-3.43-7.787-7.8-7.788zm3.787 12.972c-1.134.96-4.862 3.405-6.772 4.643V16.67c0-.414-.335-.75-.75-.75h-.396c-3.66 0-6.318-2.476-6.318-5.886 0-3.534 2.768-6.302 6.3-6.302l4.147.01h.002c3.532 0 6.3 2.766 6.302 6.296-.003 1.91-.942 3.844-2.514 5.176z\"></path></g></svg></div></div></div></div><div class=\"css-1dbjc4n r-1iusvr4 r-18u37iz r-16y2uox r-1h0z5md\"><div aria-label=\"15 Retweets. Retweet\" class=\"css-18t94o4 css-1dbjc4n r-1777fci r-11cpok1 r-1ny4l3l r-bztko3 r-lrvibr\" data-focusable=\"true\" data-testid=\"retweet\" role=\"button\" tabindex=\"0\"><div class=\"css-901oao r-1awozwy r-1re7ezh r-6koalj r-1qd0xha r-a023e6 r-16dba41 r-1h0z5md r-ad9z0x r-bcqeeo r-o7ynqc r-clp7b1 r-3s2u2q r-qvutc0\" dir=\"ltr\"><div class=\"css-1dbjc4n r-xoduu5\"><div class=\"css-1dbjc4n r-1niwhzg r-sdzlij r-1p0dtai r-xoduu5 r-1d2f490 r-xf4iuw r-u8s1d r-zchlnj r-ipm5af r-o7ynqc r-6416eg\"></div><svg class=\"r-4qtqp9 r-yyyyoo r-1xvli5t r-dnmrzs r-bnwqim r-1plcrui r-lrvibr r-1hdv0qi\" viewbox=\"0 0 24 24\"><g><path d=\"M23.77 15.67c-.292-.293-.767-.293-1.06 0l-2.22 2.22V7.65c0-2.068-1.683-3.75-3.75-3.75h-5.85c-.414 0-.75.336-.75.75s.336.75.75.75h5.85c1.24 0 2.25 1.01 2.25 2.25v10.24l-2.22-2.22c-.293-.293-.768-.293-1.06 0s-.294.768 0 1.06l3.5 3.5c.145.147.337.22.53.22s.383-.072.53-.22l3.5-3.5c.294-.292.294-.767 0-1.06zm-10.66 3.28H7.26c-1.24 0-2.25-1.01-2.25-2.25V6.46l2.22 2.22c.148.147.34.22.532.22s.384-.073.53-.22c.293-.293.293-.768 0-1.06l-3.5-3.5c-.293-.294-.768-.294-1.06 0l-3.5 3.5c-.294.292-.294.767 0 1.06s.767.293 1.06 0l2.22-2.22V16.7c0 2.068 1.683 3.75 3.75 3.75h5.85c.414 0 .75-.336.75-.75s-.337-.75-.75-.75z\"></path></g></svg></div><div class=\"css-1dbjc4n r-xoduu5 r-1udh08x\"><span class=\"css-901oao css-16my406 r-1qd0xha r-n6v787 r-1sf4r6n r-1n0xq6e r-bcqeeo r-d3hbe1 r-1wgg2b2 r-axxi2z r-qvutc0\"><span class=\"css-901oao css-16my406 r-1qd0xha r-ad9z0x r-bcqeeo r-qvutc0\">15</span></span></div></div></div></div><div class=\"css-1dbjc4n r-1iusvr4 r-18u37iz r-16y2uox r-1h0z5md\"><div aria-label=\"24 Likes. Like\" class=\"css-18t94o4 css-1dbjc4n r-1777fci r-11cpok1 r-1ny4l3l r-bztko3 r-lrvibr\" data-focusable=\"true\" data-testid=\"like\" role=\"button\" tabindex=\"0\"><div class=\"css-901oao r-1awozwy r-1re7ezh r-6koalj r-1qd0xha r-a023e6 r-16dba41 r-1h0z5md r-ad9z0x r-bcqeeo r-o7ynqc r-clp7b1 r-3s2u2q r-qvutc0\" dir=\"ltr\"><div class=\"css-1dbjc4n r-xoduu5\"><div class=\"css-1dbjc4n r-1niwhzg r-sdzlij r-1p0dtai r-xoduu5 r-1d2f490 r-xf4iuw r-u8s1d r-zchlnj r-ipm5af r-o7ynqc r-6416eg\"></div><svg class=\"r-4qtqp9 r-yyyyoo r-1xvli5t r-dnmrzs r-bnwqim r-1plcrui r-lrvibr r-1hdv0qi\" viewbox=\"0 0 24 24\"><g><path d=\"M12 21.638h-.014C9.403 21.59 1.95 14.856 1.95 8.478c0-3.064 2.525-5.754 5.403-5.754 2.29 0 3.83 1.58 4.646 2.73.814-1.148 2.354-2.73 4.645-2.73 2.88 0 5.404 2.69 5.404 5.755 0 6.376-7.454 13.11-10.037 13.157H12zM7.354 4.225c-2.08 0-3.903 1.988-3.903 4.255 0 5.74 7.034 11.596 8.55 11.658 1.518-.062 8.55-5.917 8.55-11.658 0-2.267-1.823-4.255-3.903-4.255-2.528 0-3.94 2.936-3.952 2.965-.23.562-1.156.562-1.387 0-.014-.03-1.425-2.965-3.954-2.965z\"></path></g></svg></div><div class=\"css-1dbjc4n r-xoduu5 r-1udh08x\"><span class=\"css-901oao css-16my406 r-1qd0xha r-n6v787 r-1sf4r6n r-1n0xq6e r-bcqeeo r-d3hbe1 r-1wgg2b2 r-axxi2z r-qvutc0\"><span class=\"css-901oao css-16my406 r-1qd0xha r-ad9z0x r-bcqeeo r-qvutc0\">24</span></span></div></div></div></div><div class=\"css-1dbjc4n r-1mlwlqe r-18u37iz r-18kxxzh r-1h0z5md\"><div aria-expanded=\"false\" aria-haspopup=\"true\" aria-label=\"Share Tweet\" class=\"css-18t94o4 css-1dbjc4n r-1777fci r-11cpok1 r-1ny4l3l r-bztko3 r-lrvibr\" data-focusable=\"true\" role=\"button\" tabindex=\"0\"><div class=\"css-901oao r-1awozwy r-1re7ezh r-6koalj r-1qd0xha r-a023e6 r-16dba41 r-1h0z5md r-ad9z0x r-bcqeeo r-o7ynqc r-clp7b1 r-3s2u2q r-qvutc0\" dir=\"ltr\"><div class=\"css-1dbjc4n r-xoduu5\"><div class=\"css-1dbjc4n r-1niwhzg r-sdzlij r-1p0dtai r-xoduu5 r-1d2f490 r-xf4iuw r-u8s1d r-zchlnj r-ipm5af r-o7ynqc r-6416eg\"></div><svg class=\"r-4qtqp9 r-yyyyoo r-1xvli5t r-dnmrzs r-bnwqim r-1plcrui r-lrvibr r-1hdv0qi\" viewbox=\"0 0 24 24\"><g><path d=\"M17.53 7.47l-5-5c-.293-.293-.768-.293-1.06 0l-5 5c-.294.293-.294.768 0 1.06s.767.294 1.06 0l3.72-3.72V15c0 .414.336.75.75.75s.75-.336.75-.75V4.81l3.72 3.72c.146.147.338.22.53.22s.384-.072.53-.22c.293-.293.293-.767 0-1.06z\"></path><path d=\"M19.708 21.944H4.292C3.028 21.944 2 20.916 2 19.652V14c0-.414.336-.75.75-.75s.75.336.75.75v5.652c0 .437.355.792.792.792h15.416c.437 0 .792-.355.792-.792V14c0-.414.336-.75.75-.75s.75.336.75.75v5.652c0 1.264-1.028 2.292-2.292 2.292z\"></path></g></svg></div></div></div></div></div></div></div></div></div></div></div></article></div></div></div><div><div class=\"css-1dbjc4n r-my5ep6 r-qklmqi r-1adg3ll\"><div class=\"css-1dbjc4n\"><article class=\"css-1dbjc4n r-1loqt21 r-18u37iz r-1ny4l3l r-o7ynqc r-6416eg\" data-focusable=\"true\" role=\"article\" tabindex=\"0\"><div class=\"css-1dbjc4n r-eqz5dr r-16y2uox r-1wbh5a2\"><div class=\"css-1dbjc4n r-16y2uox r-1wbh5a2 r-1ny4l3l r-1udh08x r-1yt7n81 r-ry3cjt\"><div class=\"css-1dbjc4n\"><div class=\"css-1dbjc4n\"><div class=\"css-1dbjc4n r-18u37iz\"><div class=\"css-1dbjc4n r-1iusvr4 r-16y2uox r-m611by\"></div></div></div><div class=\"css-1dbjc4n r-18u37iz\" data-testid=\"tweet\"><div class=\"css-1dbjc4n r-1awozwy r-18kxxzh r-zso239\" style=\"flex-basis: 49px;\"><div class=\"css-1dbjc4n r-18kxxzh r-1wbh5a2 r-13qz1uu\"><div class=\"css-1dbjc4n r-1wbh5a2 r-dnmrzs\"><a class=\"css-4rbku5 css-18t94o4 css-1dbjc4n r-sdzlij r-1loqt21 r-1adg3ll r-ahm1il r-1ny4l3l r-1udh08x r-o7ynqc r-6416eg r-13qz1uu\" data-focusable=\"true\" href=\"/MarsWxReport\" role=\"link\"><div class=\"css-1dbjc4n r-1adg3ll r-1udh08x\" style=\"\"><div class=\"r-1adg3ll r-13qz1uu\" style=\"padding-bottom: 100%;\"></div><div class=\"r-1p0dtai r-1pi2tsx r-1d2f490 r-u8s1d r-ipm5af r-13qz1uu\"><div aria-label=\"\" class=\"css-1dbjc4n r-sdzlij r-1p0dtai r-1mlwlqe r-1d2f490 r-1udh08x r-u8s1d r-zchlnj r-ipm5af r-417010\"><div class=\"css-1dbjc4n r-1niwhzg r-vvn4in r-u6sd8q r-4gszlv r-1p0dtai r-1pi2tsx r-1d2f490 r-u8s1d r-zchlnj r-ipm5af r-13qz1uu r-1wyyakw\" style='background-image: url(\"https://pbs.twimg.com/profile_images/2552209293/220px-Mars_atmosphere_x96.jpg\");'></div><img alt=\"\" class=\"css-9pa8cd\" draggable=\"true\" src=\"https://pbs.twimg.com/profile_images/2552209293/220px-Mars_atmosphere_x96.jpg\"/></div></div></div><div class=\"css-1dbjc4n r-1twgtwe r-sdzlij r-rs99b7 r-1p0dtai r-1mi75qu r-1d2f490 r-1ny4l3l r-u8s1d r-zchlnj r-ipm5af r-o7ynqc r-6416eg\"></div></a></div></div></div><div class=\"css-1dbjc4n r-1iusvr4 r-16y2uox r-1777fci r-1mi0q7o\"><div class=\"css-1dbjc4n\"><div class=\"css-1dbjc4n r-zl2h9q\"><div class=\"css-1dbjc4n r-1awozwy r-18u37iz r-1wtj0ep\"><div class=\"css-1dbjc4n r-1d09ksm r-18u37iz r-1wbh5a2\"><div class=\"css-1dbjc4n r-1wbh5a2 r-dnmrzs\"><a class=\"css-4rbku5 css-18t94o4 css-1dbjc4n r-1loqt21 r-1wbh5a2 r-dnmrzs r-1ny4l3l\" data-focusable=\"true\" href=\"/MarsWxReport\" role=\"link\"><div class=\"css-1dbjc4n r-1awozwy r-18u37iz r-1wbh5a2 r-dnmrzs r-1ny4l3l\"><div class=\"css-1dbjc4n r-1awozwy r-18u37iz r-dnmrzs\"><div class=\"css-901oao css-bfa6kz r-hkyrab r-1qd0xha r-a023e6 r-vw2c0b r-ad9z0x r-bcqeeo r-3s2u2q r-qvutc0\" dir=\"auto\"><span class=\"css-901oao css-16my406 r-1qd0xha r-ad9z0x r-bcqeeo r-qvutc0\"><span class=\"css-901oao css-16my406 r-1qd0xha r-ad9z0x r-bcqeeo r-qvutc0\">Mars Weather</span></span></div><div class=\"css-901oao r-hkyrab r-18u37iz r-1q142lx r-1qd0xha r-a023e6 r-16dba41 r-ad9z0x r-bcqeeo r-qvutc0\" dir=\"auto\"></div></div><div class=\"css-1dbjc4n r-18u37iz r-1wbh5a2 r-1f6r7vd\"><div class=\"css-901oao css-bfa6kz r-1re7ezh r-18u37iz r-1qd0xha r-a023e6 r-16dba41 r-ad9z0x r-bcqeeo r-qvutc0\" dir=\"ltr\"><span class=\"css-901oao css-16my406 r-1qd0xha r-ad9z0x r-bcqeeo r-qvutc0\">@MarsWxReport</span></div></div></div></a></div><div aria-hidden=\"true\" class=\"css-901oao r-1re7ezh r-1q142lx r-1qd0xha r-a023e6 r-16dba41 r-ad9z0x r-bcqeeo r-ou255f r-qvutc0\" dir=\"auto\"><span class=\"css-901oao css-16my406 r-1qd0xha r-ad9z0x r-bcqeeo r-qvutc0\">·</span></div><a aria-label=\"Jul 28\" class=\"r-1re7ezh r-1loqt21 r-1q142lx r-1qd0xha r-a023e6 r-16dba41 r-ad9z0x r-bcqeeo r-3s2u2q r-qvutc0 css-4rbku5 css-18t94o4 css-901oao\" data-focusable=\"true\" dir=\"auto\" href=\"/MarsWxReport/status/1288094656065081345\" role=\"link\" title=\"5:51 AM · Jul 28, 2020\"><time datetime=\"2020-07-28T12:51:12.000Z\">Jul 28</time></a></div><div class=\"css-1dbjc4n r-18u37iz r-1h0z5md r-1joea0r\"><div aria-haspopup=\"true\" aria-label=\"More\" class=\"css-18t94o4 css-1dbjc4n r-1777fci r-11cpok1 r-1ny4l3l r-bztko3 r-lrvibr\" data-focusable=\"true\" data-testid=\"caret\" role=\"button\" tabindex=\"0\"><div class=\"css-901oao r-1awozwy r-1re7ezh r-6koalj r-1qd0xha r-a023e6 r-16dba41 r-1h0z5md r-ad9z0x r-bcqeeo r-o7ynqc r-clp7b1 r-3s2u2q r-qvutc0\" dir=\"ltr\"><div class=\"css-1dbjc4n r-xoduu5\"><div class=\"css-1dbjc4n r-1niwhzg r-sdzlij r-1p0dtai r-xoduu5 r-1d2f490 r-podbf7 r-u8s1d r-zchlnj r-ipm5af r-o7ynqc r-6416eg\"></div><svg class=\"r-4qtqp9 r-yyyyoo r-ip8ujx r-dnmrzs r-bnwqim r-1plcrui r-lrvibr r-27tl0q\" viewbox=\"0 0 24 24\"><g><path d=\"M20.207 8.147c-.39-.39-1.023-.39-1.414 0L12 14.94 5.207 8.147c-.39-.39-1.023-.39-1.414 0-.39.39-.39 1.023 0 1.414l7.5 7.5c.195.196.45.294.707.294s.512-.098.707-.293l7.5-7.5c.39-.39.39-1.022 0-1.413z\"></path></g></svg></div></div></div></div></div></div></div><div class=\"css-1dbjc4n\"><div class=\"css-1dbjc4n\"><div class=\"css-901oao r-hkyrab r-1qd0xha r-a023e6 r-16dba41 r-ad9z0x r-bcqeeo r-bnwqim r-qvutc0\" dir=\"auto\" lang=\"en\"><span class=\"css-901oao css-16my406 r-1qd0xha r-ad9z0x r-bcqeeo r-qvutc0\">InSight sol 593 (2020-07-27) low -91.8ºC (-133.2ºF) high -16.0ºC (3.3ºF)\n",
+       "winds from the WNW at 6.5 m/s (14.4 mph) gusting to 18.8 m/s (42.1 mph)\n",
+       "pressure at 7.90 hPa</span></div></div><div class=\"css-1dbjc4n\"><div class=\"css-1dbjc4n\"><div class=\"css-1dbjc4n r-1udh08x\"><div class=\"css-1dbjc4n r-9x6qib r-1ylenci r-1phboty r-rs99b7 r-156q2ks r-1udh08x\"><div class=\"css-1dbjc4n\"><a class=\"css-4rbku5 css-18t94o4 css-1dbjc4n r-1loqt21 r-1ny4l3l\" data-focusable=\"true\" href=\"/MarsWxReport/status/1288094656065081345/photo/1\" role=\"link\"><div class=\"css-1dbjc4n r-1adg3ll r-1udh08x\" style=\"\"><div class=\"r-1adg3ll r-13qz1uu\" style=\"padding-bottom: 56.25%;\"></div><div class=\"r-1p0dtai r-1pi2tsx r-1d2f490 r-u8s1d r-ipm5af r-13qz1uu\"><div aria-label=\"Image\" class=\"css-1dbjc4n r-1p0dtai r-1mlwlqe r-1d2f490 r-11wrixw r-1udh08x r-u8s1d r-zchlnj r-ipm5af r-417010\" data-testid=\"tweetPhoto\" style=\"margin-bottom: 0px; margin-right: 0px; margin-top: 0px;\"><div class=\"css-1dbjc4n r-1niwhzg r-vvn4in r-u6sd8q r-4gszlv r-1p0dtai r-1pi2tsx r-1d2f490 r-u8s1d r-zchlnj r-ipm5af r-13qz1uu r-1wyyakw\" style='background-image: url(\"https://pbs.twimg.com/media/EeA7QpcXYAcMAIR?format=png&amp;name=900x900\");'></div><img alt=\"Image\" class=\"css-9pa8cd\" draggable=\"true\" src=\"https://pbs.twimg.com/media/EeA7QpcXYAcMAIR?format=png&amp;name=900x900\"/></div></div></div></a></div></div></div></div></div><div aria-label=\"5 Retweets, 21 likes\" class=\"css-1dbjc4n r-18u37iz r-1wtj0ep r-156q2ks r-1mdbhws\" role=\"group\"><div class=\"css-1dbjc4n r-1iusvr4 r-18u37iz r-16y2uox r-1h0z5md\"><div aria-label=\"Reply\" class=\"css-18t94o4 css-1dbjc4n r-1777fci r-11cpok1 r-1ny4l3l r-bztko3 r-lrvibr\" data-focusable=\"true\" data-testid=\"reply\" role=\"button\" tabindex=\"0\"><div class=\"css-901oao r-1awozwy r-1re7ezh r-6koalj r-1qd0xha r-a023e6 r-16dba41 r-1h0z5md r-ad9z0x r-bcqeeo r-o7ynqc r-clp7b1 r-3s2u2q r-qvutc0\" dir=\"ltr\"><div class=\"css-1dbjc4n r-xoduu5\"><div class=\"css-1dbjc4n r-1niwhzg r-sdzlij r-1p0dtai r-xoduu5 r-1d2f490 r-xf4iuw r-u8s1d r-zchlnj r-ipm5af r-o7ynqc r-6416eg\"></div><svg class=\"r-4qtqp9 r-yyyyoo r-1xvli5t r-dnmrzs r-bnwqim r-1plcrui r-lrvibr r-1hdv0qi\" viewbox=\"0 0 24 24\"><g><path d=\"M14.046 2.242l-4.148-.01h-.002c-4.374 0-7.8 3.427-7.8 7.802 0 4.098 3.186 7.206 7.465 7.37v3.828c0 .108.044.286.12.403.142.225.384.347.632.347.138 0 .277-.038.402-.118.264-.168 6.473-4.14 8.088-5.506 1.902-1.61 3.04-3.97 3.043-6.312v-.017c-.006-4.367-3.43-7.787-7.8-7.788zm3.787 12.972c-1.134.96-4.862 3.405-6.772 4.643V16.67c0-.414-.335-.75-.75-.75h-.396c-3.66 0-6.318-2.476-6.318-5.886 0-3.534 2.768-6.302 6.3-6.302l4.147.01h.002c3.532 0 6.3 2.766 6.302 6.296-.003 1.91-.942 3.844-2.514 5.176z\"></path></g></svg></div></div></div></div><div class=\"css-1dbjc4n r-1iusvr4 r-18u37iz r-16y2uox r-1h0z5md\"><div aria-label=\"5 Retweets. Retweet\" class=\"css-18t94o4 css-1dbjc4n r-1777fci r-11cpok1 r-1ny4l3l r-bztko3 r-lrvibr\" data-focusable=\"true\" data-testid=\"retweet\" role=\"button\" tabindex=\"0\"><div class=\"css-901oao r-1awozwy r-1re7ezh r-6koalj r-1qd0xha r-a023e6 r-16dba41 r-1h0z5md r-ad9z0x r-bcqeeo r-o7ynqc r-clp7b1 r-3s2u2q r-qvutc0\" dir=\"ltr\"><div class=\"css-1dbjc4n r-xoduu5\"><div class=\"css-1dbjc4n r-1niwhzg r-sdzlij r-1p0dtai r-xoduu5 r-1d2f490 r-xf4iuw r-u8s1d r-zchlnj r-ipm5af r-o7ynqc r-6416eg\"></div><svg class=\"r-4qtqp9 r-yyyyoo r-1xvli5t r-dnmrzs r-bnwqim r-1plcrui r-lrvibr r-1hdv0qi\" viewbox=\"0 0 24 24\"><g><path d=\"M23.77 15.67c-.292-.293-.767-.293-1.06 0l-2.22 2.22V7.65c0-2.068-1.683-3.75-3.75-3.75h-5.85c-.414 0-.75.336-.75.75s.336.75.75.75h5.85c1.24 0 2.25 1.01 2.25 2.25v10.24l-2.22-2.22c-.293-.293-.768-.293-1.06 0s-.294.768 0 1.06l3.5 3.5c.145.147.337.22.53.22s.383-.072.53-.22l3.5-3.5c.294-.292.294-.767 0-1.06zm-10.66 3.28H7.26c-1.24 0-2.25-1.01-2.25-2.25V6.46l2.22 2.22c.148.147.34.22.532.22s.384-.073.53-.22c.293-.293.293-.768 0-1.06l-3.5-3.5c-.293-.294-.768-.294-1.06 0l-3.5 3.5c-.294.292-.294.767 0 1.06s.767.293 1.06 0l2.22-2.22V16.7c0 2.068 1.683 3.75 3.75 3.75h5.85c.414 0 .75-.336.75-.75s-.337-.75-.75-.75z\"></path></g></svg></div><div class=\"css-1dbjc4n r-xoduu5 r-1udh08x\"><span class=\"css-901oao css-16my406 r-1qd0xha r-n6v787 r-1sf4r6n r-1n0xq6e r-bcqeeo r-d3hbe1 r-1wgg2b2 r-axxi2z r-qvutc0\"><span class=\"css-901oao css-16my406 r-1qd0xha r-ad9z0x r-bcqeeo r-qvutc0\">5</span></span></div></div></div></div><div class=\"css-1dbjc4n r-1iusvr4 r-18u37iz r-16y2uox r-1h0z5md\"><div aria-label=\"21 Likes. Like\" class=\"css-18t94o4 css-1dbjc4n r-1777fci r-11cpok1 r-1ny4l3l r-bztko3 r-lrvibr\" data-focusable=\"true\" data-testid=\"like\" role=\"button\" tabindex=\"0\"><div class=\"css-901oao r-1awozwy r-1re7ezh r-6koalj r-1qd0xha r-a023e6 r-16dba41 r-1h0z5md r-ad9z0x r-bcqeeo r-o7ynqc r-clp7b1 r-3s2u2q r-qvutc0\" dir=\"ltr\"><div class=\"css-1dbjc4n r-xoduu5\"><div class=\"css-1dbjc4n r-1niwhzg r-sdzlij r-1p0dtai r-xoduu5 r-1d2f490 r-xf4iuw r-u8s1d r-zchlnj r-ipm5af r-o7ynqc r-6416eg\"></div><svg class=\"r-4qtqp9 r-yyyyoo r-1xvli5t r-dnmrzs r-bnwqim r-1plcrui r-lrvibr r-1hdv0qi\" viewbox=\"0 0 24 24\"><g><path d=\"M12 21.638h-.014C9.403 21.59 1.95 14.856 1.95 8.478c0-3.064 2.525-5.754 5.403-5.754 2.29 0 3.83 1.58 4.646 2.73.814-1.148 2.354-2.73 4.645-2.73 2.88 0 5.404 2.69 5.404 5.755 0 6.376-7.454 13.11-10.037 13.157H12zM7.354 4.225c-2.08 0-3.903 1.988-3.903 4.255 0 5.74 7.034 11.596 8.55 11.658 1.518-.062 8.55-5.917 8.55-11.658 0-2.267-1.823-4.255-3.903-4.255-2.528 0-3.94 2.936-3.952 2.965-.23.562-1.156.562-1.387 0-.014-.03-1.425-2.965-3.954-2.965z\"></path></g></svg></div><div class=\"css-1dbjc4n r-xoduu5 r-1udh08x\"><span class=\"css-901oao css-16my406 r-1qd0xha r-n6v787 r-1sf4r6n r-1n0xq6e r-bcqeeo r-d3hbe1 r-1wgg2b2 r-axxi2z r-qvutc0\"><span class=\"css-901oao css-16my406 r-1qd0xha r-ad9z0x r-bcqeeo r-qvutc0\">21</span></span></div></div></div></div><div class=\"css-1dbjc4n r-1mlwlqe r-18u37iz r-18kxxzh r-1h0z5md\"><div aria-expanded=\"false\" aria-haspopup=\"true\" aria-label=\"Share Tweet\" class=\"css-18t94o4 css-1dbjc4n r-1777fci r-11cpok1 r-1ny4l3l r-bztko3 r-lrvibr\" data-focusable=\"true\" role=\"button\" tabindex=\"0\"><div class=\"css-901oao r-1awozwy r-1re7ezh r-6koalj r-1qd0xha r-a023e6 r-16dba41 r-1h0z5md r-ad9z0x r-bcqeeo r-o7ynqc r-clp7b1 r-3s2u2q r-qvutc0\" dir=\"ltr\"><div class=\"css-1dbjc4n r-xoduu5\"><div class=\"css-1dbjc4n r-1niwhzg r-sdzlij r-1p0dtai r-xoduu5 r-1d2f490 r-xf4iuw r-u8s1d r-zchlnj r-ipm5af r-o7ynqc r-6416eg\"></div><svg class=\"r-4qtqp9 r-yyyyoo r-1xvli5t r-dnmrzs r-bnwqim r-1plcrui r-lrvibr r-1hdv0qi\" viewbox=\"0 0 24 24\"><g><path d=\"M17.53 7.47l-5-5c-.293-.293-.768-.293-1.06 0l-5 5c-.294.293-.294.768 0 1.06s.767.294 1.06 0l3.72-3.72V15c0 .414.336.75.75.75s.75-.336.75-.75V4.81l3.72 3.72c.146.147.338.22.53.22s.384-.072.53-.22c.293-.293.293-.767 0-1.06z\"></path><path d=\"M19.708 21.944H4.292C3.028 21.944 2 20.916 2 19.652V14c0-.414.336-.75.75-.75s.75.336.75.75v5.652c0 .437.355.792.792.792h15.416c.437 0 .792-.355.792-.792V14c0-.414.336-.75.75-.75s.75.336.75.75v5.652c0 1.264-1.028 2.292-2.292 2.292z\"></path></g></svg></div></div></div></div></div></div></div></div></div></div></div></article></div></div></div><div><div class=\"css-1dbjc4n r-my5ep6 r-qklmqi r-1adg3ll\"><div class=\"css-1dbjc4n\"><article class=\"css-1dbjc4n r-1loqt21 r-18u37iz r-1ny4l3l r-o7ynqc r-6416eg\" data-focusable=\"true\" role=\"article\" tabindex=\"0\"><div class=\"css-1dbjc4n r-eqz5dr r-16y2uox r-1wbh5a2\"><div class=\"css-1dbjc4n r-16y2uox r-1wbh5a2 r-1ny4l3l r-1udh08x r-1yt7n81 r-ry3cjt\"><div class=\"css-1dbjc4n\"><div class=\"css-1dbjc4n\"><div class=\"css-1dbjc4n r-18u37iz\"><div class=\"css-1dbjc4n r-1iusvr4 r-16y2uox r-m611by\"></div></div></div><div class=\"css-1dbjc4n r-18u37iz\" data-testid=\"tweet\"><div class=\"css-1dbjc4n r-1awozwy r-18kxxzh r-zso239\" style=\"flex-basis: 49px;\"><div class=\"css-1dbjc4n r-18kxxzh r-1wbh5a2 r-13qz1uu\"><div class=\"css-1dbjc4n r-1wbh5a2 r-dnmrzs\"><a class=\"css-4rbku5 css-18t94o4 css-1dbjc4n r-sdzlij r-1loqt21 r-1adg3ll r-ahm1il r-1ny4l3l r-1udh08x r-o7ynqc r-6416eg r-13qz1uu\" data-focusable=\"true\" href=\"/MarsWxReport\" role=\"link\"><div class=\"css-1dbjc4n r-1adg3ll r-1udh08x\" style=\"\"><div class=\"r-1adg3ll r-13qz1uu\" style=\"padding-bottom: 100%;\"></div><div class=\"r-1p0dtai r-1pi2tsx r-1d2f490 r-u8s1d r-ipm5af r-13qz1uu\"><div aria-label=\"\" class=\"css-1dbjc4n r-sdzlij r-1p0dtai r-1mlwlqe r-1d2f490 r-1udh08x r-u8s1d r-zchlnj r-ipm5af r-417010\"><div class=\"css-1dbjc4n r-1niwhzg r-vvn4in r-u6sd8q r-4gszlv r-1p0dtai r-1pi2tsx r-1d2f490 r-u8s1d r-zchlnj r-ipm5af r-13qz1uu r-1wyyakw\" style='background-image: url(\"https://pbs.twimg.com/profile_images/2552209293/220px-Mars_atmosphere_x96.jpg\");'></div><img alt=\"\" class=\"css-9pa8cd\" draggable=\"true\" src=\"https://pbs.twimg.com/profile_images/2552209293/220px-Mars_atmosphere_x96.jpg\"/></div></div></div><div class=\"css-1dbjc4n r-1twgtwe r-sdzlij r-rs99b7 r-1p0dtai r-1mi75qu r-1d2f490 r-1ny4l3l r-u8s1d r-zchlnj r-ipm5af r-o7ynqc r-6416eg\"></div></a></div></div></div><div class=\"css-1dbjc4n r-1iusvr4 r-16y2uox r-1777fci r-1mi0q7o\"><div class=\"css-1dbjc4n\"><div class=\"css-1dbjc4n r-zl2h9q\"><div class=\"css-1dbjc4n r-1awozwy r-18u37iz r-1wtj0ep\"><div class=\"css-1dbjc4n r-1d09ksm r-18u37iz r-1wbh5a2\"><div class=\"css-1dbjc4n r-1wbh5a2 r-dnmrzs\"><a class=\"css-4rbku5 css-18t94o4 css-1dbjc4n r-1loqt21 r-1wbh5a2 r-dnmrzs r-1ny4l3l\" data-focusable=\"true\" href=\"/MarsWxReport\" role=\"link\"><div class=\"css-1dbjc4n r-1awozwy r-18u37iz r-1wbh5a2 r-dnmrzs r-1ny4l3l\"><div class=\"css-1dbjc4n r-1awozwy r-18u37iz r-dnmrzs\"><div class=\"css-901oao css-bfa6kz r-hkyrab r-1qd0xha r-a023e6 r-vw2c0b r-ad9z0x r-bcqeeo r-3s2u2q r-qvutc0\" dir=\"auto\"><span class=\"css-901oao css-16my406 r-1qd0xha r-ad9z0x r-bcqeeo r-qvutc0\"><span class=\"css-901oao css-16my406 r-1qd0xha r-ad9z0x r-bcqeeo r-qvutc0\">Mars Weather</span></span></div><div class=\"css-901oao r-hkyrab r-18u37iz r-1q142lx r-1qd0xha r-a023e6 r-16dba41 r-ad9z0x r-bcqeeo r-qvutc0\" dir=\"auto\"></div></div><div class=\"css-1dbjc4n r-18u37iz r-1wbh5a2 r-1f6r7vd\"><div class=\"css-901oao css-bfa6kz r-1re7ezh r-18u37iz r-1qd0xha r-a023e6 r-16dba41 r-ad9z0x r-bcqeeo r-qvutc0\" dir=\"ltr\"><span class=\"css-901oao css-16my406 r-1qd0xha r-ad9z0x r-bcqeeo r-qvutc0\">@MarsWxReport</span></div></div></div></a></div><div aria-hidden=\"true\" class=\"css-901oao r-1re7ezh r-1q142lx r-1qd0xha r-a023e6 r-16dba41 r-ad9z0x r-bcqeeo r-ou255f r-qvutc0\" dir=\"auto\"><span class=\"css-901oao css-16my406 r-1qd0xha r-ad9z0x r-bcqeeo r-qvutc0\">·</span></div><a aria-label=\"Jul 28\" class=\"r-1re7ezh r-1loqt21 r-1q142lx r-1qd0xha r-a023e6 r-16dba41 r-ad9z0x r-bcqeeo r-3s2u2q r-qvutc0 css-4rbku5 css-18t94o4 css-901oao\" data-focusable=\"true\" dir=\"auto\" href=\"/MarsWxReport/status/1288094639791251456\" role=\"link\" title=\"5:51 AM · Jul 28, 2020\"><time datetime=\"2020-07-28T12:51:08.000Z\">Jul 28</time></a></div><div class=\"css-1dbjc4n r-18u37iz r-1h0z5md r-1joea0r\"><div aria-haspopup=\"true\" aria-label=\"More\" class=\"css-18t94o4 css-1dbjc4n r-1777fci r-11cpok1 r-1ny4l3l r-bztko3 r-lrvibr\" data-focusable=\"true\" data-testid=\"caret\" role=\"button\" tabindex=\"0\"><div class=\"css-901oao r-1awozwy r-1re7ezh r-6koalj r-1qd0xha r-a023e6 r-16dba41 r-1h0z5md r-ad9z0x r-bcqeeo r-o7ynqc r-clp7b1 r-3s2u2q r-qvutc0\" dir=\"ltr\"><div class=\"css-1dbjc4n r-xoduu5\"><div class=\"css-1dbjc4n r-1niwhzg r-sdzlij r-1p0dtai r-xoduu5 r-1d2f490 r-podbf7 r-u8s1d r-zchlnj r-ipm5af r-o7ynqc r-6416eg\"></div><svg class=\"r-4qtqp9 r-yyyyoo r-ip8ujx r-dnmrzs r-bnwqim r-1plcrui r-lrvibr r-27tl0q\" viewbox=\"0 0 24 24\"><g><path d=\"M20.207 8.147c-.39-.39-1.023-.39-1.414 0L12 14.94 5.207 8.147c-.39-.39-1.023-.39-1.414 0-.39.39-.39 1.023 0 1.414l7.5 7.5c.195.196.45.294.707.294s.512-.098.707-.293l7.5-7.5c.39-.39.39-1.022 0-1.413z\"></path></g></svg></div></div></div></div></div></div></div><div class=\"css-1dbjc4n\"><div class=\"css-1dbjc4n\"><div class=\"css-901oao r-hkyrab r-1qd0xha r-a023e6 r-16dba41 r-ad9z0x r-bcqeeo r-bnwqim r-qvutc0\" dir=\"auto\" lang=\"en\"><span class=\"css-901oao css-16my406 r-1qd0xha r-ad9z0x r-bcqeeo r-qvutc0\">InSight sol 592 (2020-07-26) low -92.0ºC (-133.6ºF) high -15.1ºC (4.8ºF)\n",
+       "winds from the WNW at 6.8 m/s (15.2 mph) gusting to 17.8 m/s (39.8 mph)\n",
+       "pressure at 7.90 hPa</span></div></div><div class=\"css-1dbjc4n\"></div><div aria-label=\"5 Retweets, 23 likes\" class=\"css-1dbjc4n r-18u37iz r-1wtj0ep r-156q2ks r-1mdbhws\" role=\"group\"><div class=\"css-1dbjc4n r-1iusvr4 r-18u37iz r-16y2uox r-1h0z5md\"><div aria-label=\"Reply\" class=\"css-18t94o4 css-1dbjc4n r-1777fci r-11cpok1 r-1ny4l3l r-bztko3 r-lrvibr\" data-focusable=\"true\" data-testid=\"reply\" role=\"button\" tabindex=\"0\"><div class=\"css-901oao r-1awozwy r-1re7ezh r-6koalj r-1qd0xha r-a023e6 r-16dba41 r-1h0z5md r-ad9z0x r-bcqeeo r-o7ynqc r-clp7b1 r-3s2u2q r-qvutc0\" dir=\"ltr\"><div class=\"css-1dbjc4n r-xoduu5\"><div class=\"css-1dbjc4n r-1niwhzg r-sdzlij r-1p0dtai r-xoduu5 r-1d2f490 r-xf4iuw r-u8s1d r-zchlnj r-ipm5af r-o7ynqc r-6416eg\"></div><svg class=\"r-4qtqp9 r-yyyyoo r-1xvli5t r-dnmrzs r-bnwqim r-1plcrui r-lrvibr r-1hdv0qi\" viewbox=\"0 0 24 24\"><g><path d=\"M14.046 2.242l-4.148-.01h-.002c-4.374 0-7.8 3.427-7.8 7.802 0 4.098 3.186 7.206 7.465 7.37v3.828c0 .108.044.286.12.403.142.225.384.347.632.347.138 0 .277-.038.402-.118.264-.168 6.473-4.14 8.088-5.506 1.902-1.61 3.04-3.97 3.043-6.312v-.017c-.006-4.367-3.43-7.787-7.8-7.788zm3.787 12.972c-1.134.96-4.862 3.405-6.772 4.643V16.67c0-.414-.335-.75-.75-.75h-.396c-3.66 0-6.318-2.476-6.318-5.886 0-3.534 2.768-6.302 6.3-6.302l4.147.01h.002c3.532 0 6.3 2.766 6.302 6.296-.003 1.91-.942 3.844-2.514 5.176z\"></path></g></svg></div></div></div></div><div class=\"css-1dbjc4n r-1iusvr4 r-18u37iz r-16y2uox r-1h0z5md\"><div aria-label=\"5 Retweets. Retweet\" class=\"css-18t94o4 css-1dbjc4n r-1777fci r-11cpok1 r-1ny4l3l r-bztko3 r-lrvibr\" data-focusable=\"true\" data-testid=\"retweet\" role=\"button\" tabindex=\"0\"><div class=\"css-901oao r-1awozwy r-1re7ezh r-6koalj r-1qd0xha r-a023e6 r-16dba41 r-1h0z5md r-ad9z0x r-bcqeeo r-o7ynqc r-clp7b1 r-3s2u2q r-qvutc0\" dir=\"ltr\"><div class=\"css-1dbjc4n r-xoduu5\"><div class=\"css-1dbjc4n r-1niwhzg r-sdzlij r-1p0dtai r-xoduu5 r-1d2f490 r-xf4iuw r-u8s1d r-zchlnj r-ipm5af r-o7ynqc r-6416eg\"></div><svg class=\"r-4qtqp9 r-yyyyoo r-1xvli5t r-dnmrzs r-bnwqim r-1plcrui r-lrvibr r-1hdv0qi\" viewbox=\"0 0 24 24\"><g><path d=\"M23.77 15.67c-.292-.293-.767-.293-1.06 0l-2.22 2.22V7.65c0-2.068-1.683-3.75-3.75-3.75h-5.85c-.414 0-.75.336-.75.75s.336.75.75.75h5.85c1.24 0 2.25 1.01 2.25 2.25v10.24l-2.22-2.22c-.293-.293-.768-.293-1.06 0s-.294.768 0 1.06l3.5 3.5c.145.147.337.22.53.22s.383-.072.53-.22l3.5-3.5c.294-.292.294-.767 0-1.06zm-10.66 3.28H7.26c-1.24 0-2.25-1.01-2.25-2.25V6.46l2.22 2.22c.148.147.34.22.532.22s.384-.073.53-.22c.293-.293.293-.768 0-1.06l-3.5-3.5c-.293-.294-.768-.294-1.06 0l-3.5 3.5c-.294.292-.294.767 0 1.06s.767.293 1.06 0l2.22-2.22V16.7c0 2.068 1.683 3.75 3.75 3.75h5.85c.414 0 .75-.336.75-.75s-.337-.75-.75-.75z\"></path></g></svg></div><div class=\"css-1dbjc4n r-xoduu5 r-1udh08x\"><span class=\"css-901oao css-16my406 r-1qd0xha r-n6v787 r-1sf4r6n r-1n0xq6e r-bcqeeo r-d3hbe1 r-1wgg2b2 r-axxi2z r-qvutc0\"><span class=\"css-901oao css-16my406 r-1qd0xha r-ad9z0x r-bcqeeo r-qvutc0\">5</span></span></div></div></div></div><div class=\"css-1dbjc4n r-1iusvr4 r-18u37iz r-16y2uox r-1h0z5md\"><div aria-label=\"23 Likes. Like\" class=\"css-18t94o4 css-1dbjc4n r-1777fci r-11cpok1 r-1ny4l3l r-bztko3 r-lrvibr\" data-focusable=\"true\" data-testid=\"like\" role=\"button\" tabindex=\"0\"><div class=\"css-901oao r-1awozwy r-1re7ezh r-6koalj r-1qd0xha r-a023e6 r-16dba41 r-1h0z5md r-ad9z0x r-bcqeeo r-o7ynqc r-clp7b1 r-3s2u2q r-qvutc0\" dir=\"ltr\"><div class=\"css-1dbjc4n r-xoduu5\"><div class=\"css-1dbjc4n r-1niwhzg r-sdzlij r-1p0dtai r-xoduu5 r-1d2f490 r-xf4iuw r-u8s1d r-zchlnj r-ipm5af r-o7ynqc r-6416eg\"></div><svg class=\"r-4qtqp9 r-yyyyoo r-1xvli5t r-dnmrzs r-bnwqim r-1plcrui r-lrvibr r-1hdv0qi\" viewbox=\"0 0 24 24\"><g><path d=\"M12 21.638h-.014C9.403 21.59 1.95 14.856 1.95 8.478c0-3.064 2.525-5.754 5.403-5.754 2.29 0 3.83 1.58 4.646 2.73.814-1.148 2.354-2.73 4.645-2.73 2.88 0 5.404 2.69 5.404 5.755 0 6.376-7.454 13.11-10.037 13.157H12zM7.354 4.225c-2.08 0-3.903 1.988-3.903 4.255 0 5.74 7.034 11.596 8.55 11.658 1.518-.062 8.55-5.917 8.55-11.658 0-2.267-1.823-4.255-3.903-4.255-2.528 0-3.94 2.936-3.952 2.965-.23.562-1.156.562-1.387 0-.014-.03-1.425-2.965-3.954-2.965z\"></path></g></svg></div><div class=\"css-1dbjc4n r-xoduu5 r-1udh08x\"><span class=\"css-901oao css-16my406 r-1qd0xha r-n6v787 r-1sf4r6n r-1n0xq6e r-bcqeeo r-d3hbe1 r-1wgg2b2 r-axxi2z r-qvutc0\"><span class=\"css-901oao css-16my406 r-1qd0xha r-ad9z0x r-bcqeeo r-qvutc0\">23</span></span></div></div></div></div><div class=\"css-1dbjc4n r-1mlwlqe r-18u37iz r-18kxxzh r-1h0z5md\"><div aria-expanded=\"false\" aria-haspopup=\"true\" aria-label=\"Share Tweet\" class=\"css-18t94o4 css-1dbjc4n r-1777fci r-11cpok1 r-1ny4l3l r-bztko3 r-lrvibr\" data-focusable=\"true\" role=\"button\" tabindex=\"0\"><div class=\"css-901oao r-1awozwy r-1re7ezh r-6koalj r-1qd0xha r-a023e6 r-16dba41 r-1h0z5md r-ad9z0x r-bcqeeo r-o7ynqc r-clp7b1 r-3s2u2q r-qvutc0\" dir=\"ltr\"><div class=\"css-1dbjc4n r-xoduu5\"><div class=\"css-1dbjc4n r-1niwhzg r-sdzlij r-1p0dtai r-xoduu5 r-1d2f490 r-xf4iuw r-u8s1d r-zchlnj r-ipm5af r-o7ynqc r-6416eg\"></div><svg class=\"r-4qtqp9 r-yyyyoo r-1xvli5t r-dnmrzs r-bnwqim r-1plcrui r-lrvibr r-1hdv0qi\" viewbox=\"0 0 24 24\"><g><path d=\"M17.53 7.47l-5-5c-.293-.293-.768-.293-1.06 0l-5 5c-.294.293-.294.768 0 1.06s.767.294 1.06 0l3.72-3.72V15c0 .414.336.75.75.75s.75-.336.75-.75V4.81l3.72 3.72c.146.147.338.22.53.22s.384-.072.53-.22c.293-.293.293-.767 0-1.06z\"></path><path d=\"M19.708 21.944H4.292C3.028 21.944 2 20.916 2 19.652V14c0-.414.336-.75.75-.75s.75.336.75.75v5.652c0 .437.355.792.792.792h15.416c.437 0 .792-.355.792-.792V14c0-.414.336-.75.75-.75s.75.336.75.75v5.652c0 1.264-1.028 2.292-2.292 2.292z\"></path></g></svg></div></div></div></div></div></div></div></div></div></div></div></article></div></div></div><div><div class=\"css-1dbjc4n r-my5ep6 r-qklmqi r-1adg3ll\"><div class=\"css-1dbjc4n\"><article class=\"css-1dbjc4n r-1loqt21 r-18u37iz r-1ny4l3l r-o7ynqc r-6416eg\" data-focusable=\"true\" role=\"article\" tabindex=\"0\"><div class=\"css-1dbjc4n r-eqz5dr r-16y2uox r-1wbh5a2\"><div class=\"css-1dbjc4n r-16y2uox r-1wbh5a2 r-1ny4l3l r-1udh08x r-1yt7n81 r-ry3cjt\"><div class=\"css-1dbjc4n\"><div class=\"css-1dbjc4n\"><div class=\"css-1dbjc4n r-18u37iz\"><div class=\"css-1dbjc4n r-1iusvr4 r-16y2uox r-m611by\"></div></div></div><div class=\"css-1dbjc4n r-18u37iz\" data-testid=\"tweet\"><div class=\"css-1dbjc4n r-1awozwy r-18kxxzh r-zso239\" style=\"flex-basis: 49px;\"><div class=\"css-1dbjc4n r-18kxxzh r-1wbh5a2 r-13qz1uu\"><div class=\"css-1dbjc4n r-1wbh5a2 r-dnmrzs\"><a class=\"css-4rbku5 css-18t94o4 css-1dbjc4n r-sdzlij r-1loqt21 r-1adg3ll r-ahm1il r-1ny4l3l r-1udh08x r-o7ynqc r-6416eg r-13qz1uu\" data-focusable=\"true\" href=\"/MarsWxReport\" role=\"link\"><div class=\"css-1dbjc4n r-1adg3ll r-1udh08x\" style=\"\"><div class=\"r-1adg3ll r-13qz1uu\" style=\"padding-bottom: 100%;\"></div><div class=\"r-1p0dtai r-1pi2tsx r-1d2f490 r-u8s1d r-ipm5af r-13qz1uu\"><div aria-label=\"\" class=\"css-1dbjc4n r-sdzlij r-1p0dtai r-1mlwlqe r-1d2f490 r-1udh08x r-u8s1d r-zchlnj r-ipm5af r-417010\"><div class=\"css-1dbjc4n r-1niwhzg r-vvn4in r-u6sd8q r-4gszlv r-1p0dtai r-1pi2tsx r-1d2f490 r-u8s1d r-zchlnj r-ipm5af r-13qz1uu r-1wyyakw\" style='background-image: url(\"https://pbs.twimg.com/profile_images/2552209293/220px-Mars_atmosphere_x96.jpg\");'></div><img alt=\"\" class=\"css-9pa8cd\" draggable=\"true\" src=\"https://pbs.twimg.com/profile_images/2552209293/220px-Mars_atmosphere_x96.jpg\"/></div></div></div><div class=\"css-1dbjc4n r-1twgtwe r-sdzlij r-rs99b7 r-1p0dtai r-1mi75qu r-1d2f490 r-1ny4l3l r-u8s1d r-zchlnj r-ipm5af r-o7ynqc r-6416eg\"></div></a></div></div></div><div class=\"css-1dbjc4n r-1iusvr4 r-16y2uox r-1777fci r-1mi0q7o\"><div class=\"css-1dbjc4n\"><div class=\"css-1dbjc4n r-zl2h9q\"><div class=\"css-1dbjc4n r-1awozwy r-18u37iz r-1wtj0ep\"><div class=\"css-1dbjc4n r-1d09ksm r-18u37iz r-1wbh5a2\"><div class=\"css-1dbjc4n r-1wbh5a2 r-dnmrzs\"><a class=\"css-4rbku5 css-18t94o4 css-1dbjc4n r-1loqt21 r-1wbh5a2 r-dnmrzs r-1ny4l3l\" data-focusable=\"true\" href=\"/MarsWxReport\" role=\"link\"><div class=\"css-1dbjc4n r-1awozwy r-18u37iz r-1wbh5a2 r-dnmrzs r-1ny4l3l\"><div class=\"css-1dbjc4n r-1awozwy r-18u37iz r-dnmrzs\"><div class=\"css-901oao css-bfa6kz r-hkyrab r-1qd0xha r-a023e6 r-vw2c0b r-ad9z0x r-bcqeeo r-3s2u2q r-qvutc0\" dir=\"auto\"><span class=\"css-901oao css-16my406 r-1qd0xha r-ad9z0x r-bcqeeo r-qvutc0\"><span class=\"css-901oao css-16my406 r-1qd0xha r-ad9z0x r-bcqeeo r-qvutc0\">Mars Weather</span></span></div><div class=\"css-901oao r-hkyrab r-18u37iz r-1q142lx r-1qd0xha r-a023e6 r-16dba41 r-ad9z0x r-bcqeeo r-qvutc0\" dir=\"auto\"></div></div><div class=\"css-1dbjc4n r-18u37iz r-1wbh5a2 r-1f6r7vd\"><div class=\"css-901oao css-bfa6kz r-1re7ezh r-18u37iz r-1qd0xha r-a023e6 r-16dba41 r-ad9z0x r-bcqeeo r-qvutc0\" dir=\"ltr\"><span class=\"css-901oao css-16my406 r-1qd0xha r-ad9z0x r-bcqeeo r-qvutc0\">@MarsWxReport</span></div></div></div></a></div><div aria-hidden=\"true\" class=\"css-901oao r-1re7ezh r-1q142lx r-1qd0xha r-a023e6 r-16dba41 r-ad9z0x r-bcqeeo r-ou255f r-qvutc0\" dir=\"auto\"><span class=\"css-901oao css-16my406 r-1qd0xha r-ad9z0x r-bcqeeo r-qvutc0\">·</span></div><a aria-label=\"Jul 26\" class=\"r-1re7ezh r-1loqt21 r-1q142lx r-1qd0xha r-a023e6 r-16dba41 r-ad9z0x r-bcqeeo r-3s2u2q r-qvutc0 css-4rbku5 css-18t94o4 css-901oao\" data-focusable=\"true\" dir=\"auto\" href=\"/MarsWxReport/status/1287551096643231744\" role=\"link\" title=\"5:51 PM · Jul 26, 2020\"><time datetime=\"2020-07-27T00:51:17.000Z\">Jul 26</time></a></div><div class=\"css-1dbjc4n r-18u37iz r-1h0z5md r-1joea0r\"><div aria-haspopup=\"true\" aria-label=\"More\" class=\"css-18t94o4 css-1dbjc4n r-1777fci r-11cpok1 r-1ny4l3l r-bztko3 r-lrvibr\" data-focusable=\"true\" data-testid=\"caret\" role=\"button\" tabindex=\"0\"><div class=\"css-901oao r-1awozwy r-1re7ezh r-6koalj r-1qd0xha r-a023e6 r-16dba41 r-1h0z5md r-ad9z0x r-bcqeeo r-o7ynqc r-clp7b1 r-3s2u2q r-qvutc0\" dir=\"ltr\"><div class=\"css-1dbjc4n r-xoduu5\"><div class=\"css-1dbjc4n r-1niwhzg r-sdzlij r-1p0dtai r-xoduu5 r-1d2f490 r-podbf7 r-u8s1d r-zchlnj r-ipm5af r-o7ynqc r-6416eg\"></div><svg class=\"r-4qtqp9 r-yyyyoo r-ip8ujx r-dnmrzs r-bnwqim r-1plcrui r-lrvibr r-27tl0q\" viewbox=\"0 0 24 24\"><g><path d=\"M20.207 8.147c-.39-.39-1.023-.39-1.414 0L12 14.94 5.207 8.147c-.39-.39-1.023-.39-1.414 0-.39.39-.39 1.023 0 1.414l7.5 7.5c.195.196.45.294.707.294s.512-.098.707-.293l7.5-7.5c.39-.39.39-1.022 0-1.413z\"></path></g></svg></div></div></div></div></div></div></div><div class=\"css-1dbjc4n\"><div class=\"css-1dbjc4n\"><div class=\"css-901oao r-hkyrab r-1qd0xha r-a023e6 r-16dba41 r-ad9z0x r-bcqeeo r-bnwqim r-qvutc0\" dir=\"auto\" lang=\"en\"><span class=\"css-901oao css-16my406 r-1qd0xha r-ad9z0x r-bcqeeo r-qvutc0\">InSight sol 591 (2020-07-25) low -91.2ºC (-132.2ºF) high -15.5ºC (4.2ºF)\n",
+       "winds from the WNW at 7.5 m/s (16.9 mph) gusting to 19.0 m/s (42.5 mph)\n",
+       "pressure at 7.90 hPa</span></div></div><div class=\"css-1dbjc4n\"><div class=\"css-1dbjc4n\"><div class=\"css-1dbjc4n r-1udh08x\"><div class=\"css-1dbjc4n r-9x6qib r-1ylenci r-1phboty r-rs99b7 r-156q2ks r-1udh08x\"><div class=\"css-1dbjc4n\"><a class=\"css-4rbku5 css-18t94o4 css-1dbjc4n r-1loqt21 r-1ny4l3l\" data-focusable=\"true\" href=\"/MarsWxReport/status/1287551096643231744/photo/1\" role=\"link\"><div class=\"css-1dbjc4n r-1adg3ll r-1udh08x\" style=\"\"><div class=\"r-1adg3ll r-13qz1uu\" style=\"padding-bottom: 56.25%;\"></div><div class=\"r-1p0dtai r-1pi2tsx r-1d2f490 r-u8s1d r-ipm5af r-13qz1uu\"><div aria-label=\"Image\" class=\"css-1dbjc4n r-1p0dtai r-1mlwlqe r-1d2f490 r-11wrixw r-1udh08x r-u8s1d r-zchlnj r-ipm5af r-417010\" data-testid=\"tweetPhoto\" style=\"margin-bottom: 0px; margin-right: 0px; margin-top: 0px;\"><div class=\"css-1dbjc4n r-1niwhzg r-vvn4in r-u6sd8q r-4gszlv r-1p0dtai r-1pi2tsx r-1d2f490 r-u8s1d r-zchlnj r-ipm5af r-13qz1uu r-1wyyakw\" style='background-image: url(\"https://pbs.twimg.com/media/Ed5M5V3UwAE47FL?format=png&amp;name=900x900\");'></div><img alt=\"Image\" class=\"css-9pa8cd\" draggable=\"true\" src=\"https://pbs.twimg.com/media/Ed5M5V3UwAE47FL?format=png&amp;name=900x900\"/></div></div></div></a></div></div></div></div></div><div aria-label=\"10 Retweets, 30 likes\" class=\"css-1dbjc4n r-18u37iz r-1wtj0ep r-156q2ks r-1mdbhws\" role=\"group\"><div class=\"css-1dbjc4n r-1iusvr4 r-18u37iz r-16y2uox r-1h0z5md\"><div aria-label=\"Reply\" class=\"css-18t94o4 css-1dbjc4n r-1777fci r-11cpok1 r-1ny4l3l r-bztko3 r-lrvibr\" data-focusable=\"true\" data-testid=\"reply\" role=\"button\" tabindex=\"0\"><div class=\"css-901oao r-1awozwy r-1re7ezh r-6koalj r-1qd0xha r-a023e6 r-16dba41 r-1h0z5md r-ad9z0x r-bcqeeo r-o7ynqc r-clp7b1 r-3s2u2q r-qvutc0\" dir=\"ltr\"><div class=\"css-1dbjc4n r-xoduu5\"><div class=\"css-1dbjc4n r-1niwhzg r-sdzlij r-1p0dtai r-xoduu5 r-1d2f490 r-xf4iuw r-u8s1d r-zchlnj r-ipm5af r-o7ynqc r-6416eg\"></div><svg class=\"r-4qtqp9 r-yyyyoo r-1xvli5t r-dnmrzs r-bnwqim r-1plcrui r-lrvibr r-1hdv0qi\" viewbox=\"0 0 24 24\"><g><path d=\"M14.046 2.242l-4.148-.01h-.002c-4.374 0-7.8 3.427-7.8 7.802 0 4.098 3.186 7.206 7.465 7.37v3.828c0 .108.044.286.12.403.142.225.384.347.632.347.138 0 .277-.038.402-.118.264-.168 6.473-4.14 8.088-5.506 1.902-1.61 3.04-3.97 3.043-6.312v-.017c-.006-4.367-3.43-7.787-7.8-7.788zm3.787 12.972c-1.134.96-4.862 3.405-6.772 4.643V16.67c0-.414-.335-.75-.75-.75h-.396c-3.66 0-6.318-2.476-6.318-5.886 0-3.534 2.768-6.302 6.3-6.302l4.147.01h.002c3.532 0 6.3 2.766 6.302 6.296-.003 1.91-.942 3.844-2.514 5.176z\"></path></g></svg></div></div></div></div><div class=\"css-1dbjc4n r-1iusvr4 r-18u37iz r-16y2uox r-1h0z5md\"><div aria-label=\"10 Retweets. Retweet\" class=\"css-18t94o4 css-1dbjc4n r-1777fci r-11cpok1 r-1ny4l3l r-bztko3 r-lrvibr\" data-focusable=\"true\" data-testid=\"retweet\" role=\"button\" tabindex=\"0\"><div class=\"css-901oao r-1awozwy r-1re7ezh r-6koalj r-1qd0xha r-a023e6 r-16dba41 r-1h0z5md r-ad9z0x r-bcqeeo r-o7ynqc r-clp7b1 r-3s2u2q r-qvutc0\" dir=\"ltr\"><div class=\"css-1dbjc4n r-xoduu5\"><div class=\"css-1dbjc4n r-1niwhzg r-sdzlij r-1p0dtai r-xoduu5 r-1d2f490 r-xf4iuw r-u8s1d r-zchlnj r-ipm5af r-o7ynqc r-6416eg\"></div><svg class=\"r-4qtqp9 r-yyyyoo r-1xvli5t r-dnmrzs r-bnwqim r-1plcrui r-lrvibr r-1hdv0qi\" viewbox=\"0 0 24 24\"><g><path d=\"M23.77 15.67c-.292-.293-.767-.293-1.06 0l-2.22 2.22V7.65c0-2.068-1.683-3.75-3.75-3.75h-5.85c-.414 0-.75.336-.75.75s.336.75.75.75h5.85c1.24 0 2.25 1.01 2.25 2.25v10.24l-2.22-2.22c-.293-.293-.768-.293-1.06 0s-.294.768 0 1.06l3.5 3.5c.145.147.337.22.53.22s.383-.072.53-.22l3.5-3.5c.294-.292.294-.767 0-1.06zm-10.66 3.28H7.26c-1.24 0-2.25-1.01-2.25-2.25V6.46l2.22 2.22c.148.147.34.22.532.22s.384-.073.53-.22c.293-.293.293-.768 0-1.06l-3.5-3.5c-.293-.294-.768-.294-1.06 0l-3.5 3.5c-.294.292-.294.767 0 1.06s.767.293 1.06 0l2.22-2.22V16.7c0 2.068 1.683 3.75 3.75 3.75h5.85c.414 0 .75-.336.75-.75s-.337-.75-.75-.75z\"></path></g></svg></div><div class=\"css-1dbjc4n r-xoduu5 r-1udh08x\"><span class=\"css-901oao css-16my406 r-1qd0xha r-n6v787 r-1sf4r6n r-1n0xq6e r-bcqeeo r-d3hbe1 r-1wgg2b2 r-axxi2z r-qvutc0\"><span class=\"css-901oao css-16my406 r-1qd0xha r-ad9z0x r-bcqeeo r-qvutc0\">10</span></span></div></div></div></div><div class=\"css-1dbjc4n r-1iusvr4 r-18u37iz r-16y2uox r-1h0z5md\"><div aria-label=\"30 Likes. Like\" class=\"css-18t94o4 css-1dbjc4n r-1777fci r-11cpok1 r-1ny4l3l r-bztko3 r-lrvibr\" data-focusable=\"true\" data-testid=\"like\" role=\"button\" tabindex=\"0\"><div class=\"css-901oao r-1awozwy r-1re7ezh r-6koalj r-1qd0xha r-a023e6 r-16dba41 r-1h0z5md r-ad9z0x r-bcqeeo r-o7ynqc r-clp7b1 r-3s2u2q r-qvutc0\" dir=\"ltr\"><div class=\"css-1dbjc4n r-xoduu5\"><div class=\"css-1dbjc4n r-1niwhzg r-sdzlij r-1p0dtai r-xoduu5 r-1d2f490 r-xf4iuw r-u8s1d r-zchlnj r-ipm5af r-o7ynqc r-6416eg\"></div><svg class=\"r-4qtqp9 r-yyyyoo r-1xvli5t r-dnmrzs r-bnwqim r-1plcrui r-lrvibr r-1hdv0qi\" viewbox=\"0 0 24 24\"><g><path d=\"M12 21.638h-.014C9.403 21.59 1.95 14.856 1.95 8.478c0-3.064 2.525-5.754 5.403-5.754 2.29 0 3.83 1.58 4.646 2.73.814-1.148 2.354-2.73 4.645-2.73 2.88 0 5.404 2.69 5.404 5.755 0 6.376-7.454 13.11-10.037 13.157H12zM7.354 4.225c-2.08 0-3.903 1.988-3.903 4.255 0 5.74 7.034 11.596 8.55 11.658 1.518-.062 8.55-5.917 8.55-11.658 0-2.267-1.823-4.255-3.903-4.255-2.528 0-3.94 2.936-3.952 2.965-.23.562-1.156.562-1.387 0-.014-.03-1.425-2.965-3.954-2.965z\"></path></g></svg></div><div class=\"css-1dbjc4n r-xoduu5 r-1udh08x\"><span class=\"css-901oao css-16my406 r-1qd0xha r-n6v787 r-1sf4r6n r-1n0xq6e r-bcqeeo r-d3hbe1 r-1wgg2b2 r-axxi2z r-qvutc0\"><span class=\"css-901oao css-16my406 r-1qd0xha r-ad9z0x r-bcqeeo r-qvutc0\">30</span></span></div></div></div></div><div class=\"css-1dbjc4n r-1mlwlqe r-18u37iz r-18kxxzh r-1h0z5md\"><div aria-expanded=\"false\" aria-haspopup=\"true\" aria-label=\"Share Tweet\" class=\"css-18t94o4 css-1dbjc4n r-1777fci r-11cpok1 r-1ny4l3l r-bztko3 r-lrvibr\" data-focusable=\"true\" role=\"button\" tabindex=\"0\"><div class=\"css-901oao r-1awozwy r-1re7ezh r-6koalj r-1qd0xha r-a023e6 r-16dba41 r-1h0z5md r-ad9z0x r-bcqeeo r-o7ynqc r-clp7b1 r-3s2u2q r-qvutc0\" dir=\"ltr\"><div class=\"css-1dbjc4n r-xoduu5\"><div class=\"css-1dbjc4n r-1niwhzg r-sdzlij r-1p0dtai r-xoduu5 r-1d2f490 r-xf4iuw r-u8s1d r-zchlnj r-ipm5af r-o7ynqc r-6416eg\"></div><svg class=\"r-4qtqp9 r-yyyyoo r-1xvli5t r-dnmrzs r-bnwqim r-1plcrui r-lrvibr r-1hdv0qi\" viewbox=\"0 0 24 24\"><g><path d=\"M17.53 7.47l-5-5c-.293-.293-.768-.293-1.06 0l-5 5c-.294.293-.294.768 0 1.06s.767.294 1.06 0l3.72-3.72V15c0 .414.336.75.75.75s.75-.336.75-.75V4.81l3.72 3.72c.146.147.338.22.53.22s.384-.072.53-.22c.293-.293.293-.767 0-1.06z\"></path><path d=\"M19.708 21.944H4.292C3.028 21.944 2 20.916 2 19.652V14c0-.414.336-.75.75-.75s.75.336.75.75v5.652c0 .437.355.792.792.792h15.416c.437 0 .792-.355.792-.792V14c0-.414.336-.75.75-.75s.75.336.75.75v5.652c0 1.264-1.028 2.292-2.292 2.292z\"></path></g></svg></div></div></div></div></div></div></div></div></div></div></div></article></div></div></div></div></div></div></section>"
+      ]
+     },
+     "execution_count": 20,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "# Mars weather\n",
+    "weather_url = 'https://twitter.com/marswxreport?lang=en'\n",
+    "browser.visit(weather_url)\n",
+    "time.sleep(5)\n",
+    "weather_html = browser.html\n",
+    "weather_soup = bs(weather_html, 'html.parser')\n",
+    "\n",
+    "    "
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 28,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "['InSight sol 595 (2020-07-29) low -91.9ºC (-133.5ºF) high -12.9ºC (8.7ºF)\\nwinds from the WNW at 7.0 m/s (15.6 mph) gusting to 18.2 m/s (40.7 mph)\\npressure at 7.90 hPa',\n",
+       " 'A mysteriously long, thin cloud has again appeared over the 20-km high Arsia Mons volcano on Mars, revealed in images captured by the ',\n",
+       " 'InSight sol 594 (2020-07-28) low -91.8ºC (-133.2ºF) high -16.6ºC (2.2ºF)\\nwinds from the WNW at 8.0 m/s (17.8 mph) gusting to 20.7 m/s (46.4 mph)\\npressure at 7.90 hPa',\n",
+       " 'InSight sol 593 (2020-07-27) low -91.8ºC (-133.2ºF) high -16.0ºC (3.3ºF)\\nwinds from the WNW at 6.5 m/s (14.4 mph) gusting to 18.8 m/s (42.1 mph)\\npressure at 7.90 hPa',\n",
+       " 'InSight sol 592 (2020-07-26) low -92.0ºC (-133.6ºF) high -15.1ºC (4.8ºF)\\nwinds from the WNW at 6.8 m/s (15.2 mph) gusting to 17.8 m/s (39.8 mph)\\npressure at 7.90 hPa',\n",
+       " 'InSight sol 591 (2020-07-25) low -91.2ºC (-132.2ºF) high -15.5ºC (4.2ºF)\\nwinds from the WNW at 7.5 m/s (16.9 mph) gusting to 19.0 m/s (42.5 mph)\\npressure at 7.90 hPa']"
+      ]
+     },
+     "execution_count": 28,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "mars_weather = weather_soup.find('section', attrs={\"aria-labelledby\":\"accessible-list-0\"})\n",
+    "mars_weather = mars_weather.find_all('span')\n",
+    "\n",
+    "mars_w = []\n",
+    "\n",
+    "for x in mars_weather:\n",
+    "    if len(x.get_text())>100:\n",
+    "        mars_w.append(x.get_text())\n",
+    "mars_w"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 45,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "[                      0                              1\n",
+       " 0  Equatorial Diameter:                       6,792 km\n",
+       " 1       Polar Diameter:                       6,752 km\n",
+       " 2                 Mass:  6.39 × 10^23 kg (0.11 Earths)\n",
+       " 3                Moons:            2 (Phobos & Deimos)\n",
+       " 4       Orbit Distance:       227,943,824 km (1.38 AU)\n",
+       " 5         Orbit Period:           687 days (1.9 years)\n",
+       " 6  Surface Temperature:                   -87 to -5 °C\n",
+       " 7         First Record:              2nd millennium BC\n",
+       " 8          Recorded By:           Egyptian astronomers,\n",
+       "   Mars - Earth Comparison             Mars            Earth\n",
+       " 0               Diameter:         6,779 km        12,742 km\n",
+       " 1                   Mass:  6.39 × 10^23 kg  5.97 × 10^24 kg\n",
+       " 2                  Moons:                2                1\n",
+       " 3      Distance from Sun:   227,943,824 km   149,598,262 km\n",
+       " 4         Length of Year:   687 Earth days      365.24 days\n",
+       " 5            Temperature:    -153 to 20 °C      -88 to 58°C,\n",
+       "                       0                              1\n",
+       " 0  Equatorial Diameter:                       6,792 km\n",
+       " 1       Polar Diameter:                       6,752 km\n",
+       " 2                 Mass:  6.39 × 10^23 kg (0.11 Earths)\n",
+       " 3                Moons:            2 (Phobos & Deimos)\n",
+       " 4       Orbit Distance:       227,943,824 km (1.38 AU)\n",
+       " 5         Orbit Period:           687 days (1.9 years)\n",
+       " 6  Surface Temperature:                   -87 to -5 °C\n",
+       " 7         First Record:              2nd millennium BC\n",
+       " 8          Recorded By:           Egyptian astronomers]"
+      ]
+     },
+     "execution_count": 45,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "# Mars facts page\n",
+    "url = \"https://space-facts.com/mars/\"\n",
+    "# Scrape the table of mars facts using pandas\n",
+    "mars_facts = pd.read_html(url)\n",
+    "mars_facts"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 46,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/html": [
+       "<div>\n",
+       "<style scoped>\n",
+       "    .dataframe tbody tr th:only-of-type {\n",
+       "        vertical-align: middle;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe tbody tr th {\n",
+       "        vertical-align: top;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe thead th {\n",
+       "        text-align: right;\n",
+       "    }\n",
+       "</style>\n",
+       "<table border=\"1\" class=\"dataframe\">\n",
+       "  <thead>\n",
+       "    <tr style=\"text-align: right;\">\n",
+       "      <th></th>\n",
+       "      <th>Description</th>\n",
+       "      <th>Value</th>\n",
+       "    </tr>\n",
+       "  </thead>\n",
+       "  <tbody>\n",
+       "    <tr>\n",
+       "      <th>0</th>\n",
+       "      <td>Equatorial Diameter:</td>\n",
+       "      <td>6,792 km</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>1</th>\n",
+       "      <td>Polar Diameter:</td>\n",
+       "      <td>6,752 km</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>2</th>\n",
+       "      <td>Mass:</td>\n",
+       "      <td>6.39 × 10^23 kg (0.11 Earths)</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>3</th>\n",
+       "      <td>Moons:</td>\n",
+       "      <td>2 (Phobos &amp; Deimos)</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>4</th>\n",
+       "      <td>Orbit Distance:</td>\n",
+       "      <td>227,943,824 km (1.38 AU)</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>5</th>\n",
+       "      <td>Orbit Period:</td>\n",
+       "      <td>687 days (1.9 years)</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>6</th>\n",
+       "      <td>Surface Temperature:</td>\n",
+       "      <td>-87 to -5 °C</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>7</th>\n",
+       "      <td>First Record:</td>\n",
+       "      <td>2nd millennium BC</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>8</th>\n",
+       "      <td>Recorded By:</td>\n",
+       "      <td>Egyptian astronomers</td>\n",
+       "    </tr>\n",
+       "  </tbody>\n",
+       "</table>\n",
+       "</div>"
+      ],
+      "text/plain": [
+       "            Description                          Value\n",
+       "0  Equatorial Diameter:                       6,792 km\n",
+       "1       Polar Diameter:                       6,752 km\n",
+       "2                 Mass:  6.39 × 10^23 kg (0.11 Earths)\n",
+       "3                Moons:            2 (Phobos & Deimos)\n",
+       "4       Orbit Distance:       227,943,824 km (1.38 AU)\n",
+       "5         Orbit Period:           687 days (1.9 years)\n",
+       "6  Surface Temperature:                   -87 to -5 °C\n",
+       "7         First Record:              2nd millennium BC\n",
+       "8          Recorded By:           Egyptian astronomers"
+      ]
+     },
+     "execution_count": 46,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "# extract description and value from the table and put the information in as data frame\n",
+    "mars_facts_df = tables[2]\n",
+    "mars_facts_df.columns = [\"Description\", \"Value\"]\n",
+    "mars_facts_df"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 55,
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "<table border=\"1\" class=\"dataframe\">\n",
+      "  <thead>\n",
+      "    <tr style=\"text-align: right;\">\n",
+      "      <th></th>\n",
+      "      <th>Description</th>\n",
+      "      <th>Value</th>\n",
+      "    </tr>\n",
+      "  </thead>\n",
+      "  <tbody>\n",
+      "    <tr>\n",
+      "      <th>0</th>\n",
+      "      <td>Equatorial Diameter:</td>\n",
+      "      <td>6,792 km</td>\n",
+      "    </tr>\n",
+      "    <tr>\n",
+      "      <th>1</th>\n",
+      "      <td>Polar Diameter:</td>\n",
+      "      <td>6,752 km</td>\n",
+      "    </tr>\n",
+      "    <tr>\n",
+      "      <th>2</th>\n",
+      "      <td>Mass:</td>\n",
+      "      <td>6.39 × 10^23 kg (0.11 Earths)</td>\n",
+      "    </tr>\n",
+      "    <tr>\n",
+      "      <th>3</th>\n",
+      "      <td>Moons:</td>\n",
+      "      <td>2 (Phobos &amp; Deimos)</td>\n",
+      "    </tr>\n",
+      "    <tr>\n",
+      "      <th>4</th>\n",
+      "      <td>Orbit Distance:</td>\n",
+      "      <td>227,943,824 km (1.38 AU)</td>\n",
+      "    </tr>\n",
+      "    <tr>\n",
+      "      <th>5</th>\n",
+      "      <td>Orbit Period:</td>\n",
+      "      <td>687 days (1.9 years)</td>\n",
+      "    </tr>\n",
+      "    <tr>\n",
+      "      <th>6</th>\n",
+      "      <td>Surface Temperature:</td>\n",
+      "      <td>-87 to -5 °C</td>\n",
+      "    </tr>\n",
+      "    <tr>\n",
+      "      <th>7</th>\n",
+      "      <td>First Record:</td>\n",
+      "      <td>2nd millennium BC</td>\n",
+      "    </tr>\n",
+      "    <tr>\n",
+      "      <th>8</th>\n",
+      "      <td>Recorded By:</td>\n",
+      "      <td>Egyptian astronomers</td>\n",
+      "    </tr>\n",
+      "  </tbody>\n",
+      "</table>\n"
+     ]
+    }
+   ],
+   "source": [
+    "#  Use Pandas to convert the data to a HTML table string.\n",
+    "mars_html_table = mars_facts_df.to_html()\n",
+    "print(mars_html_table)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 57,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "### Mars Hemispheres\n",
+    "hemispheres_url = 'https://astrogeology.usgs.gov/search/results?q=hemisphere+enhanced&k1=target&v1=Mars'\n",
+    "browser.visit(hemispheres_url)\n",
+    "hemispheres_html = browser.html\n",
+    "hemispheres_soup = bs(hemispheres_html, 'html.parser')"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 60,
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "[{'title': 'Cerberus Hemisphere Enhanced', 'img_url': 'https://astropedia.astrogeology.usgs.gov/download/Mars/Viking/cerberus_enhanced.tif/full.jpg'}, {'title': 'Schiaparelli Hemisphere Enhanced', 'img_url': 'https://astropedia.astrogeology.usgs.gov/download/Mars/Viking/schiaparelli_enhanced.tif/full.jpg'}, {'title': 'Syrtis Major Hemisphere Enhanced', 'img_url': 'https://astropedia.astrogeology.usgs.gov/download/Mars/Viking/syrtis_major_enhanced.tif/full.jpg'}, {'title': 'Valles Marineris Hemisphere Enhanced', 'img_url': 'https://astropedia.astrogeology.usgs.gov/download/Mars/Viking/valles_marineris_enhanced.tif/full.jpg'}]\n"
+     ]
+    }
+   ],
+   "source": [
+    "# Mars hemispheres products data\n",
+    "all_mars_hemispheres = hemispheres_soup.find('div', class_='collapsible results')\n",
+    "mars_hemispheres = all_mars_hemispheres.find_all('div', class_='item')\n",
+    "\n",
+    "hemisphere_image_urls = []\n",
+    "url = 'https://astrogeology.usgs.gov'\n",
+    "# Iterate through each hemisphere data\n",
+    "for i in mars_hemispheres:\n",
+    "    # Collect Title information\n",
+    "    hemisphere = i.find('div', class_=\"description\")\n",
+    "    title = hemisphere.h3.text\n",
+    "    \n",
+    "    # Collect image link by browsing to hemisphere page\n",
+    "    hemisphere_link = hemisphere.a[\"href\"]    \n",
+    "    browser.visit(url + hemisphere_link)\n",
+    "    \n",
+    "    image_html = browser.html\n",
+    "    image_soup = bs(image_html, 'html.parser')\n",
+    "    \n",
+    "    image_link = image_soup.find('div', class_='downloads')\n",
+    "    image_url = image_link.find('li').a['href']\n",
+    "\n",
+    "    # Save both the image url string for the full resolution hemisphere image, and the Hemisphere title containing the hemisphere name.\n",
+    "    image_dict = {}\n",
+    "    image_dict['title'] = title\n",
+    "    image_dict['img_url'] = image_url\n",
+    "    # Append the dictionary with the image url string and the hemisphere title to a list. This list will contain one dictionary for each hemisphere.\n",
+    "    hemisphere_image_urls.append(image_dict)\n",
+    "print(hemisphere_image_urls)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 61,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "Mars_information ={\n",
+    "        \"news_title\": news_title,\n",
+    "        \"news_p\": news_p,\n",
+    "        \"featured_image_url\": full_size_image_url,\n",
+    "        \"mars_weather\": Mars_weather,\n",
+    "        \"fact_table\": str(mars_html_table),\n",
+    "        \"hemisphere_images\": hemisphere_image_urls\n",
+    "}"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 63,
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "{'news_title': 'Mars Now', 'news_p': 'View a 3D visualization of all the missions exploring the Red Planet', 'featured_image_url': 'http://www.jpl.nasa.gov/spaceimages/images/wallpaper/PIA24032-640x350.jpg', 'mars_weather': [], 'fact_table': '<table border=\"1\" class=\"dataframe\">\\n  <thead>\\n    <tr style=\"text-align: right;\">\\n      <th></th>\\n      <th>Description</th>\\n      <th>Value</th>\\n    </tr>\\n  </thead>\\n  <tbody>\\n    <tr>\\n      <th>0</th>\\n      <td>Equatorial Diameter:</td>\\n      <td>6,792 km</td>\\n    </tr>\\n    <tr>\\n      <th>1</th>\\n      <td>Polar Diameter:</td>\\n      <td>6,752 km</td>\\n    </tr>\\n    <tr>\\n      <th>2</th>\\n      <td>Mass:</td>\\n      <td>6.39 × 10^23 kg (0.11 Earths)</td>\\n    </tr>\\n    <tr>\\n      <th>3</th>\\n      <td>Moons:</td>\\n      <td>2 (Phobos &amp; Deimos)</td>\\n    </tr>\\n    <tr>\\n      <th>4</th>\\n      <td>Orbit Distance:</td>\\n      <td>227,943,824 km (1.38 AU)</td>\\n    </tr>\\n    <tr>\\n      <th>5</th>\\n      <td>Orbit Period:</td>\\n      <td>687 days (1.9 years)</td>\\n    </tr>\\n    <tr>\\n      <th>6</th>\\n      <td>Surface Temperature:</td>\\n      <td>-87 to -5 °C</td>\\n    </tr>\\n    <tr>\\n      <th>7</th>\\n      <td>First Record:</td>\\n      <td>2nd millennium BC</td>\\n    </tr>\\n    <tr>\\n      <th>8</th>\\n      <td>Recorded By:</td>\\n      <td>Egyptian astronomers</td>\\n    </tr>\\n  </tbody>\\n</table>', 'hemisphere_images': [{'title': 'Cerberus Hemisphere Enhanced', 'img_url': 'https://astropedia.astrogeology.usgs.gov/download/Mars/Viking/cerberus_enhanced.tif/full.jpg'}, {'title': 'Schiaparelli Hemisphere Enhanced', 'img_url': 'https://astropedia.astrogeology.usgs.gov/download/Mars/Viking/schiaparelli_enhanced.tif/full.jpg'}, {'title': 'Syrtis Major Hemisphere Enhanced', 'img_url': 'https://astropedia.astrogeology.usgs.gov/download/Mars/Viking/syrtis_major_enhanced.tif/full.jpg'}, {'title': 'Valles Marineris Hemisphere Enhanced', 'img_url': 'https://astropedia.astrogeology.usgs.gov/download/Mars/Viking/valles_marineris_enhanced.tif/full.jpg'}]}\n"
+     ]
+    }
+   ],
+   "source": [
+    "print(Mars_information)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": []
+  }
+ ],
+ "metadata": {
+  "kernelspec": {
+   "display_name": "Python 3",
+   "language": "python",
+   "name": "python3"
+  },
+  "language_info": {
+   "codemirror_mode": {
+    "name": "ipython",
+    "version": 3
+   },
+   "file_extension": ".py",
+   "mimetype": "text/x-python",
+   "name": "python",
+   "nbconvert_exporter": "python",
+   "pygments_lexer": "ipython3",
+   "version": "3.7.4"
+  }
+ },
+ "nbformat": 4,
+ "nbformat_minor": 2
+}
